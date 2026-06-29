@@ -1,0 +1,183 @@
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight } from "lucide-react";
+import { ALL_TRIPS, formatDateRange, type Trip } from "@/lib/data/trips";
+
+// Show the 3 soonest upcoming trips on the homepage
+const today = new Date().toISOString().split("T")[0];
+const featuredTrips = ALL_TRIPS.filter((t) => t.startDate >= today)
+  .sort((a, b) => a.startDate.localeCompare(b.startDate))
+  .slice(0, 3);
+
+const diffColors: Record<string, { bg: string; text: string }> = {
+  Easy:     { bg: "#dcfce7", text: "#166534" },
+  Moderate: { bg: "#fef9c3", text: "#854d0e" },
+  Hard:     { bg: "#fee2e2", text: "#991b1b" },
+};
+
+function TripCard({ trip, delay }: { trip: Trip; delay: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { threshold: 0.1 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const slotsLeft = trip.maxSlots - trip.bookedSlots;
+  const pct = Math.round((trip.bookedSlots / trip.maxSlots) * 100);
+  const dc = diffColors[trip.difficulty] ?? { bg: "#f3f4f6", text: "#374151" };
+
+  return (
+    <div
+      ref={ref}
+      className="transition-all duration-700"
+      style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(40px)", transitionDelay: `${delay}ms` }}
+    >
+      <Link
+        href={`/trips/${trip.slug}`}
+        className="group block rounded-2xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 bg-white"
+      >
+        {/* Cover photo */}
+        <div className="h-56 relative overflow-hidden">
+          <Image
+            src={trip.coverImage}
+            alt={trip.title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, 33vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+
+          <div className="absolute top-4 left-4">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ background: trip.tagColor }}>
+              {trip.tag}
+            </span>
+          </div>
+          <div className="absolute top-4 right-4">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: dc.bg, color: dc.text }}>
+              {trip.difficulty}
+            </span>
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 p-5">
+            <p className="text-xs font-medium text-white/55 uppercase tracking-wide mb-0.5">{trip.destination}</p>
+            <h3 className="text-xl font-bold text-white group-hover:text-[#FFB001] transition-colors" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+              {trip.title}
+            </h3>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <p className="text-xs text-gray-400 mb-3">📅 {formatDateRange(trip.startDate, trip.endDate)}{trip.departureTime ? ` · ${trip.departureTime}` : ""}</p>
+          <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">{trip.shortDescription}</p>
+
+          {/* Slot bar */}
+          <div className="mt-4">
+            <div className="flex justify-between text-xs text-gray-400 mb-1.5">
+              <span>{slotsLeft} slots left</span>
+              <span>{pct}% filled</span>
+            </div>
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-1000"
+                style={{ width: visible ? `${pct}%` : "0%", background: pct > 75 ? "#ef4444" : trip.tagColor, transitionDelay: `${delay + 400}ms` }}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-5 pt-5 border-t border-gray-50">
+            <div>
+              <p className="text-xs text-gray-400">Starting from</p>
+              <p className="text-2xl font-bold" style={{ fontFamily: "'Clash Display', sans-serif", color: "#01574A" }}>
+                ₹{trip.basePrice.toLocaleString("en-IN")}
+              </p>
+            </div>
+            <span
+              className="inline-flex items-center gap-1.5 text-sm font-bold px-5 py-2.5 rounded-full text-white transition-all group-hover:gap-2.5"
+              style={{ background: trip.tagColor }}
+            >
+              Book Now <ArrowRight size={14} />
+            </span>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+}
+
+export default function UpcomingTrips() {
+  const headingRef = useRef<HTMLDivElement>(null);
+  const [headingVisible, setHeadingVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setHeadingVisible(true); observer.disconnect(); } },
+      { threshold: 0.2 }
+    );
+    if (headingRef.current) observer.observe(headingRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section className="py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div
+          ref={headingRef}
+          className="flex items-end justify-between mb-14 transition-all duration-700"
+          style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? "translateY(0)" : "translateY(24px)" }}
+        >
+          <div>
+            <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "#FF6016" }}>
+              July – December 2026
+            </p>
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+              Upcoming Trips.
+              <br />
+              <span style={{ color: "#01574A" }}>Slots filling fast.</span>
+            </h2>
+          </div>
+          <Link href="/trips" className="hidden md:inline-flex items-center gap-2 text-sm font-bold hover:gap-3 transition-all" style={{ color: "#FF6016" }}>
+            View all {ALL_TRIPS.length} trips <ArrowRight size={16} />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {featuredTrips.map((trip, i) => (
+            <TripCard key={trip.id} trip={trip} delay={i * 100} />
+          ))}
+
+          {/* "See all" filler card */}
+          <div
+            className="rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-10 text-center min-h-[420px]"
+            style={{ borderColor: "#FFEFDD" }}
+          >
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 text-2xl" style={{ background: "#FFEFDD" }}>
+              🗓️
+            </div>
+            <p className="text-xl font-bold text-gray-800" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+              {ALL_TRIPS.length - 3} More Adventures
+            </p>
+            <p className="text-sm text-gray-400 mt-2 max-w-[180px] leading-relaxed">
+              Treks, weekend escapes, Rishikesh, Ranthambore & Jaisalmer.
+            </p>
+            <Link
+              href="/trips"
+              className="mt-6 text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:opacity-90"
+              style={{ background: "#FFEFDD", color: "#FF6016" }}
+            >
+              See Full Calendar →
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
