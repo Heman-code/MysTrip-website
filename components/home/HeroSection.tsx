@@ -114,9 +114,8 @@ export default function HeroSection() {
             className="mt-6 text-base sm:text-lg leading-relaxed hero-fade-in"
             style={{ color: "rgba(255,255,255,0.65)", maxWidth: "420px", animationDelay: "0.28s" }}
           >
-            India&apos;s award-winning youth travel community. We don&apos;t
-            organise tours — we build tribes. Real experiences. Real people.
-            No compromises.
+            We did the planning. You do the showing up.
+            Your people are already on the list.
           </p>
 
           <p className="mt-3 text-sm font-semibold hero-fade-in" style={{ color: "#FF6016", animationDelay: "0.35s" }}>

@@ -112,20 +112,20 @@ export default function TestimonialsSection() {
           style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)" }}
         >
           <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "#FFB001" }}>
-            Real reviews · Verified travellers only
+            Verified travellers only · No paid posts
           </p>
           <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-16">
             <h2
               className="text-4xl lg:text-5xl font-bold text-white leading-tight"
               style={{ fontFamily: "'Clash Display', sans-serif" }}
             >
-              What the tribe
+              Some people collect things.
               <br />
-              <span style={{ color: "#FF6016" }}>actually says.</span>
+              <span style={{ color: "#FF6016" }}>We collect these.</span>
             </h2>
             <p className="text-white/40 max-w-sm text-base leading-relaxed lg:mb-1">
-              Only people who&apos;ve booked and travelled with MysTrip can leave a review.
-              No exceptions. No paid testimonials.
+              You can only leave a review if you&apos;ve actually been on the trip.
+              No exceptions. No paid posts. If it was mid, you&apos;d hear about it.
             </p>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function TestimonialsSection() {
         </div>
 
         <p className="text-center text-sm mt-10" style={{ color: "rgba(255,255,255,0.2)" }}>
-          These are placeholder reviews. Real verified reviews will appear here after our July trips.
+          Real verified reviews dropping after our July trips. Stay tuned.
         </p>
       </div>
     </section>

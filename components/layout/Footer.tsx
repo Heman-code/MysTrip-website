@@ -15,17 +15,41 @@ export default function Footer() {
 
           {/* Brand */}
           <div className="md:col-span-2">
-            {/* Logo — mascot + wordmark */}
+            {/* Logo — mascot + wordmark, pixel-exact clipping (measured via canvas) */}
             <div className="flex items-center gap-3 mb-5">
-              <div className="relative w-10 h-10 flex-shrink-0">
-                <Image src="/logos/mascot-orange.png" alt="MysTrip" fill className="object-contain" sizes="40px" />
+              {/*
+                Mascot: at 100px render → orange pixels x=31–68, y=29–70 (37×41px content)
+                Target height 52px → scale=52/41=1.268 → render at 127px
+                At 127px: x=31×1.268=39, x=68×1.268=86 → width=47px
+                          y=29×1.268=37 → top=-37
+                Container: 47×52px
+              */}
+              <div style={{ width: 47, height: 52, overflow: "hidden", position: "relative", flexShrink: 0 }}>
+                <Image
+                  src="/logos/mascot-orange.png"
+                  alt="MysTrip"
+                  width={127}
+                  height={127}
+                  style={{ position: "absolute", top: -37, left: -39, width: 127, height: 127, maxWidth: "none" }}
+                />
               </div>
-              <span
-                className="text-white font-bold text-2xl leading-none"
-                style={{ fontFamily: "'Clash Display', sans-serif", letterSpacing: "-0.02em" }}
-              >
-                Mys<span style={{ color: "#FF6016" }}>Trip</span>
-              </span>
+              {/*
+                Wordmark: at 138px render → orange pixels x=30–107, y=59–78 (77×19px content)
+                Target height 44px → scale=44/19=2.316 → render at 319px
+                At 319px: x=30×2.316=69, x=107×2.316=248 → width=179px
+                          y=59×2.316=137 → top=-137
+                Container: 179×44px
+              */}
+              <div style={{ width: 134, height: 33, overflow: "hidden", position: "relative", flexShrink: 0 }}>
+                <Image
+                  src="/logos/wordmark-orange.png"
+                  alt=""
+                  width={239}
+                  height={239}
+                  style={{ position: "absolute", top: -103, left: -52, width: 239, height: 239, maxWidth: "none" }}
+                  aria-hidden
+                />
+              </div>
             </div>
             <p className="text-sm leading-relaxed max-w-xs" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Mozilla Text, system-ui, sans-serif" }}>
               Not a tour. Not a package. A bunch of strangers who become your people. India&apos;s most trusted youth travel community.

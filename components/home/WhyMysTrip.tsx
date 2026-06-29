@@ -8,25 +8,25 @@ const pillars = [
     emoji: "🫂",
     title: "Tribe, Not Tourists",
     description:
-      "We don't send you on a trip. We connect you with a group of like-minded people who become your people long after the trip ends.",
+      "We don't put you on a bus with strangers. We build a group you'd actually want in your group chat — then we send you on a trip together.",
   },
   {
     emoji: "✅",
     title: "No Fake Reviews",
     description:
-      "Only students who've actually travelled with us can drop a review. No paid testimonials. No fake profiles. Ever.",
+      "Only people who've actually been on the trip can leave a review. No paid posts. No fake profiles. If the trip was mid, you'd know.",
   },
   {
     emoji: "🎒",
     title: "Transparent, Always",
     description:
-      "We&apos;ve done 12,500 ft summits because we wanted to — not because it was cheap. Transparent pricing, no hidden costs, no compromises on quality.",
+      "Full pricing upfront. No 'plus taxes, plus this, plus that.' What you see is what you pay. What we plan is what you get.",
   },
   {
     emoji: "🏆",
     title: "Award-Winning Experiences",
     description:
-      "India's only student travel community to win the 'Student Travel Experience of the Year' national award. We take this seriously.",
+      "India's only student travel community to win 'Student Travel Experience of the Year.' Two national awards. We take this seriously.",
   },
 ];
 
@@ -108,12 +108,12 @@ export default function WhyMysTrip() {
               className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight"
               style={{ fontFamily: "'Clash Display', sans-serif" }}
             >
-              We&apos;re not your average
+              Travel&apos;s better with people
               <br />
-              <span style={{ color: "#FF6016" }}>travel company.</span>
+              <span style={{ color: "#FF6016" }}>who actually get it.</span>
             </h2>
             <p className="text-gray-500 max-w-sm text-base leading-relaxed lg:mb-1">
-              We summited 12,500 ft on the Kedarkantha because we wanted that experience — not because it was cheap. Every trip we build starts with: is this worth doing?
+              We summited 12,500 ft on the Kedarkantha because we wanted that experience — not because it was the cheapest option. Every trip starts with one question: is this actually worth doing?
             </p>
           </div>
         </div>

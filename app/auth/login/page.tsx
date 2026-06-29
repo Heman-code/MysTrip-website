@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+
   const [showPass, setShowPass] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -15,9 +21,23 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 900));
-    setLoading(false);
-    setError("Invalid email or password. Try again.");
+    try {
+      const result = await signIn("credentials", {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+      if (result?.error) {
+        setError("Invalid email or password. Try again.");
+      } else {
+        router.push(callbackUrl);
+        router.refresh();
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputBase = {
@@ -37,12 +57,13 @@ export default function LoginPage() {
           className="object-cover"
           sizes="50vw"
           priority
+          style={{ zIndex: 0 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-transparent" style={{ zIndex: 1 }} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" style={{ zIndex: 1 }} />
 
         {/* Logo */}
-        <div className="relative flex items-center gap-3 z-10">
+        <div className="relative flex items-center gap-3" style={{ zIndex: 2 }}>
           <div className="relative w-9 h-9">
             <Image src="/logos/mascot-orange.png" alt="MysTrip" fill className="object-contain" sizes="36px" />
           </div>
@@ -52,7 +73,7 @@ export default function LoginPage() {
         </div>
 
         {/* Stat pills */}
-        <div className="relative z-10">
+        <div className="relative" style={{ zIndex: 2 }}>
           <p className="text-4xl font-bold text-white leading-snug mb-6" style={{ fontFamily: "'Clash Display', sans-serif" }}>
             Your tribe<br />is out there.
           </p>

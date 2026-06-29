@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: {
@@ -36,17 +37,13 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500,400&display=swap"
           rel="stylesheet"
         />
-        {/* Mozilla Text — brand body font */}
-        <link rel="preconnect" href="https://fonts.bunny.net" />
-        <link
-          href="https://fonts.bunny.net/css?family=mozilla-text:400,500,600,700&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body className="min-h-screen flex flex-col antialiased">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <Providers>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

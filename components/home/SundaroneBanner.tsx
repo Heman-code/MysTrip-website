@@ -61,9 +61,9 @@ export default function SundaroneBanner() {
               </h2>
 
               <p className="mt-5 text-sm leading-relaxed max-w-md" style={{ color: "rgba(255,255,255,0.45)" }}>
-                We&apos;ve built an exclusive travel calendar for Sundarone Hostel residents —
-                planned around your semester, your budget, and the kind of people you&apos;d
-                actually want to travel with.
+                Semester planned. Budget sorted. People you&apos;d actually want in your group chat.
+                The Sundarone travel calendar is built exclusively for hostel residents —
+                and the first trip is closer than you think.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mt-8">

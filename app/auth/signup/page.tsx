@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Eye, EyeOff, CheckCircle2 } from "lucide-react";
@@ -25,15 +26,43 @@ export default function SignupPage() {
     college: "",
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     if (step < 2) { setStep(step + 1); return; }
+
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setDone(true);
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          password: form.password,
+          college: form.college,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? "Something went wrong."); setLoading(false); return; }
+
+      const result = await signIn("credentials", {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+      if (result?.error) { setError("Account created but login failed. Try logging in."); setLoading(false); return; }
+
+      setDone(true);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (done) {
@@ -76,13 +105,13 @@ export default function SignupPage() {
           className="object-cover"
           sizes="50vw"
           priority
+          style={{ zIndex: 0 }}
         />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" style={{ zIndex: 1 }} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" style={{ zIndex: 1 }} />
 
         {/* Logo */}
-        <div className="relative flex items-center gap-3 z-10">
+        <div className="relative flex items-center gap-3" style={{ zIndex: 2 }}>
           <div className="relative w-9 h-9">
             <Image src="/logos/mascot-orange.png" alt="MysTrip" fill className="object-contain" sizes="36px" />
           </div>
@@ -92,7 +121,7 @@ export default function SignupPage() {
         </div>
 
         {/* Quote */}
-        <div className="relative z-10">
+        <div className="relative" style={{ zIndex: 2 }}>
           <blockquote className="text-3xl font-bold text-white leading-snug mb-4" style={{ fontFamily: "'Clash Display', sans-serif" }}>
             &ldquo;Some people collect things. We collect 2am conversations with people we met 3 days ago.&rdquo;
           </blockquote>
@@ -379,6 +408,9 @@ export default function SignupPage() {
                   )}
                 </button>
               </div>
+              {error && (
+                <p className="text-sm text-red-400 text-center pt-1">{error}</p>
+              )}
             </div>
           )}
         </form>
