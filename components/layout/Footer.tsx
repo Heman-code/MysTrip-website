@@ -6,8 +6,8 @@ export default function Footer() {
   return (
     <footer style={{ background: "#01180F" }} className="text-white relative overflow-hidden">
       {/* Mascot watermark */}
-      <div className="absolute right-0 bottom-0 w-72 h-72 opacity-[0.04] pointer-events-none select-none">
-        <Image src="/logo-mark.png" alt="" fill className="object-contain object-right-bottom" aria-hidden />
+      <div className="absolute right-0 bottom-0 w-80 h-80 opacity-[0.05] pointer-events-none select-none">
+        <Image src="/logos/mascot-orange.png" alt="" fill className="object-contain object-right-bottom" aria-hidden />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
@@ -15,11 +15,20 @@ export default function Footer() {
 
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="mb-4">
-              <Image src="/logos/logo-sand.png" alt="MysTrip" width={120} height={120} className="object-contain" />
+            {/* Logo — mascot + wordmark */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="relative w-10 h-10 flex-shrink-0">
+                <Image src="/logos/mascot-orange.png" alt="MysTrip" fill className="object-contain" sizes="40px" />
+              </div>
+              <span
+                className="text-white font-bold text-2xl leading-none"
+                style={{ fontFamily: "'Clash Display', sans-serif", letterSpacing: "-0.02em" }}
+              >
+                Mys<span style={{ color: "#FF6016" }}>Trip</span>
+              </span>
             </div>
-            <p className="text-sm leading-relaxed max-w-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-              India&apos;s most trusted youth travel community. Turning strangers into a tribe since 2024.
+            <p className="text-sm leading-relaxed max-w-xs" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Mozilla Text, system-ui, sans-serif" }}>
+              Not a tour. Not a package. A bunch of strangers who become your people. India&apos;s most trusted youth travel community.
             </p>
             <div className="flex flex-wrap gap-2 mt-5">
               {["AIC-MUJ", "Sundarone Partner"].map((badge) => (
