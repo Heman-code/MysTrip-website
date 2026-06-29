@@ -186,7 +186,7 @@ export default function TripsPage() {
       {/* Page hero */}
       <section className="relative pt-32 pb-20 overflow-hidden" style={{ background: "#0B1210" }}>
         <div className="absolute inset-0 opacity-20">
-          <Image src="/trips/hero-kedarkantha-blizzard.jpg" alt="" fill className="object-cover object-top" priority />
+          <Image src="/trips/hero-kedarkantha-blizzard-2.jpg" alt="" fill className="object-cover object-top" priority />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#0B1210]/60 via-[#0B1210]/80 to-[#0B1210]" />
 

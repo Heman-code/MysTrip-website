@@ -225,7 +225,7 @@ export default function DashboardClient({ user, pastTrips }: Props) {
                 <div className="rounded-2xl p-6 text-center mt-4" style={{ background: "#0B1210" }}>
                   <p className="text-white font-bold mb-1" style={{ fontFamily: "'Clash Display', sans-serif" }}>Ready for the next one?</p>
                   <p className="text-white/40 text-sm mb-4">Online booking is almost here. For now, grab your spot on WhatsApp.</p>
-                  <a href="https://wa.me/918107613759?text=Hey! I want to book a trip with MysTrip."
+                  <a href="https://wa.me/918822068322?text=Hey! I want to book a trip with MysTrip."
                     target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-white text-sm transition-all hover:scale-105"
                     style={{ background: "#25D366" }}>
@@ -247,7 +247,7 @@ export default function DashboardClient({ user, pastTrips }: Props) {
                 <p className="text-white/40 text-sm mb-6 max-w-md mx-auto">
                   Reach out on WhatsApp to reserve your spot.
                 </p>
-                <a href="https://wa.me/918107613759?text=Hey! I want to book a trip with MysTrip."
+                <a href="https://wa.me/918822068322?text=Hey! I want to book a trip with MysTrip."
                   target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-white transition-all hover:scale-105"
                   style={{ background: "#25D366" }}>

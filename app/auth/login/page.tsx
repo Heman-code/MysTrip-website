@@ -51,7 +51,7 @@ export default function LoginPage() {
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden">
         <Image
-          src="/trips/hero-kedarkantha-blizzard.jpg"
+          src="/trips/hero-kedarkantha-blizzard-2.jpg"
           alt="The Mountains Await"
           fill
           className="object-cover"
