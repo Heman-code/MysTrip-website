@@ -95,16 +95,13 @@ function TripCard({ trip, delay }: { trip: Trip; delay: number }) {
 
           <div className="flex items-center justify-between mt-5 pt-5 border-t border-gray-50">
             <div>
-              <p className="text-xs text-gray-400">Starting from</p>
-              <p className="text-2xl font-bold" style={{ fontFamily: "'Clash Display', sans-serif", color: "#01574A" }}>
-                ₹{trip.basePrice.toLocaleString("en-IN")}
-              </p>
+              <p className="text-xs font-medium" style={{ color: "#FF6016" }}>Price revealing soon</p>
             </div>
             <span
               className="inline-flex items-center gap-1.5 text-sm font-bold px-5 py-2.5 rounded-full text-white transition-all group-hover:gap-2.5"
               style={{ background: trip.tagColor }}
             >
-              Book Now <ArrowRight size={14} />
+              Know More <ArrowRight size={14} />
             </span>
           </div>
         </div>

@@ -8,7 +8,7 @@ const photos = [
   { src: "/trips/gallery-banki-ridge-line.jpg",       label: "Ban ki Ghati",     size: "square" },
   { src: "/trips/gallery-udaipur-friends.jpg",        label: "Udaipur",          size: "square" },
   { src: "/trips/gallery-jaisalmer-group.jpg",        label: "Jaisalmer",        size: "wide" },
-  { src: "/trips/gallery-kedarkantha-peaks.jpg",      label: "Kedarkantha Trek", size: "square" },
+  { src: "/trips/gallery-kedarkantha-peaks-2.jpg",      label: "Kedarkantha Trek", size: "square" },
   { src: "/trips/gallery-sumel-campfire.jpg",         label: "Mount Sumel",      size: "tall" },
   { src: "/trips/gallery-banki-circle-aerial.jpg",    label: "Ban ki Ghati",     size: "wide" },
   { src: "/trips/gallery-kedarkantha-boots.jpg",      label: "Kedarkantha Trek", size: "square" },

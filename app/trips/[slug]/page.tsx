@@ -183,14 +183,11 @@ export default async function TripDetailPage({ params }: Props) {
                     </h2>
                     <p className="text-sm text-gray-400 mt-1">Day-by-day breakdown with timings, food stops, and logistics.</p>
                   </div>
-                  <Link
-                    href={`/api/itinerary/${trip.slug}`}
-                    target="_blank"
-                    className="text-sm font-bold px-5 py-2.5 rounded-full text-white transition-opacity hover:opacity-90"
-                    style={{ background: trip.tagColor }}
+                  <span
+                    className="text-sm font-semibold px-5 py-2.5 rounded-full text-gray-400 bg-gray-100 cursor-default"
                   >
-                    View PDF →
-                  </Link>
+                    Coming Soon
+                  </span>
                 </div>
               </div>
 
@@ -207,11 +204,11 @@ export default async function TripDetailPage({ params }: Props) {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
                   {/* Price header */}
                   <div className="p-6 border-b border-gray-50">
-                    <p className="text-xs text-gray-400 mb-1">Starting from</p>
-                    <p className="text-4xl font-bold" style={{ fontFamily: "'Clash Display', sans-serif", color: "#01574A" }}>
-                      ₹{trip.basePrice.toLocaleString("en-IN")}
+                    <p className="text-xs text-gray-400 mb-1">Investment</p>
+                    <p className="text-xl font-bold" style={{ fontFamily: "'Clash Display', sans-serif", color: "#FF6016" }}>
+                      Price revealing soon
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">per person · all inclusive</p>
+                    <p className="text-xs text-gray-400 mt-1">Drop us a message to be first to know</p>
                   </div>
 
                   {/* Availability */}
@@ -250,31 +247,24 @@ export default async function TripDetailPage({ params }: Props) {
 
                   {/* CTA */}
                   <div className="px-6 pb-6">
-                    {trip.registrationOpen && slotsLeft > 0 ? (
-                      <Link
-                        href={`/trips/${trip.slug}/book`}
-                        className="block w-full text-center py-4 rounded-2xl font-bold text-white text-base transition-all hover:opacity-90 active:scale-95"
-                        style={{ background: trip.tagColor }}
-                      >
-                        Book This Trip →
-                      </Link>
-                    ) : (
-                      <button
-                        disabled
-                        className="block w-full text-center py-4 rounded-2xl font-bold text-gray-400 text-base bg-gray-100 cursor-not-allowed"
-                      >
-                        {slotsLeft === 0 ? "Sold Out" : "Registration Closed"}
-                      </button>
-                    )}
+                    <a
+                      href={`https://wa.me/918822068322?text=Hey! I want to join the ${encodeURIComponent(trip.title)} trip.`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full text-center py-4 rounded-2xl font-bold text-white text-base transition-all hover:opacity-90 active:scale-95"
+                      style={{ background: trip.tagColor }}
+                    >
+                      Apply for This Trip →
+                    </a>
                     <p className="text-center text-xs text-gray-400 mt-3">
-                      Secure checkout · UPI / Card / EMI via Razorpay
+                      Spots are limited · We'll confirm your seat personally
                     </p>
                   </div>
 
                   {/* Trust signals */}
                   <div className="px-6 pb-6 pt-2 border-t border-gray-50">
                     <div className="space-y-2">
-                      {["7-day full refund guarantee", "WhatsApp group access after booking", "Real-time trip updates"].map((t) => (
+                      {["7-day full refund guarantee", "WhatsApp group access after joining", "Real-time trip updates"].map((t) => (
                         <div key={t} className="flex items-center gap-2 text-xs text-gray-500">
                           <span className="text-green-500">✓</span> {t}
                         </div>
@@ -286,9 +276,9 @@ export default async function TripDetailPage({ params }: Props) {
                 {/* Help card */}
                 <div className="mt-4 bg-white rounded-2xl border border-gray-100 p-5">
                   <p className="text-sm font-semibold text-gray-900 mb-1">Have questions?</p>
-                  <p className="text-xs text-gray-400 mb-3">Talk to a MysTrip host before you book.</p>
+                  <p className="text-xs text-gray-400 mb-3">Talk to a MysTrip host before you apply.</p>
                   <a
-                    href="https://wa.me/919876543210"
+                    href="https://wa.me/918822068322"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90"
@@ -303,27 +293,21 @@ export default async function TripDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* ── Mobile sticky booking bar ── */}
+      {/* ── Mobile sticky bar ── */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-white px-4 py-3 flex items-center gap-3" style={{ borderColor: "#e5e7eb" }}>
         <div className="flex-1">
-          <p className="text-xs text-gray-400">Starting from</p>
-          <p className="text-xl font-bold" style={{ fontFamily: "'Clash Display', sans-serif", color: "#01574A" }}>
-            ₹{trip.basePrice.toLocaleString("en-IN")}
-          </p>
+          <p className="text-xs text-gray-400">Investment</p>
+          <p className="text-sm font-bold" style={{ color: "#FF6016" }}>Price revealing soon</p>
         </div>
-        {trip.registrationOpen && slotsLeft > 0 ? (
-          <Link
-            href={`/trips/${trip.slug}/book`}
-            className="px-8 py-3 rounded-2xl font-bold text-white text-sm flex-shrink-0"
-            style={{ background: trip.tagColor }}
-          >
-            Book Now →
-          </Link>
-        ) : (
-          <span className="px-8 py-3 rounded-2xl font-bold text-gray-400 text-sm bg-gray-100 flex-shrink-0">
-            {slotsLeft === 0 ? "Sold Out" : "Closed"}
-          </span>
-        )}
+        <a
+          href={`https://wa.me/918822068322?text=Hey! I want to join the ${encodeURIComponent(trip.title)} trip.`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-6 py-3 rounded-2xl font-bold text-white text-sm flex-shrink-0"
+          style={{ background: trip.tagColor }}
+        >
+          Apply Now →
+        </a>
       </div>
     </>
   );

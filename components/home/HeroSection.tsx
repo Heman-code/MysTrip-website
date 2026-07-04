@@ -71,28 +71,24 @@ export default function HeroSection() {
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`, backgroundSize: "200px" }} />
 
       {/* Content */}
-      <div className="relative flex-1 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
+      <div className="relative flex-1 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-16 sm:pb-20">
         <div className="max-w-2xl">
 
           {/* Awards */}
-          <div className="flex flex-wrap gap-2 mb-8 hero-fade-in" style={{ animationDelay: "0.05s" }}>
-            {[
-              "🏆 Student Travel Experience of the Year — India",
-              "🏆 Best AI-Powered Personal Travel Planner — India",
-            ].map((award) => (
-              <span
-                key={award}
-                className="text-xs font-semibold px-3.5 py-1.5 rounded-full backdrop-blur-sm"
-                style={{ background: "rgba(255,176,1,0.15)", color: "#FFB001", border: "1px solid rgba(255,176,1,0.25)" }}
-              >
-                {award}
-              </span>
-            ))}
+          <div className="flex flex-row flex-wrap gap-2 mb-5 hero-fade-in" style={{ animationDelay: "0.05s" }}>
+            <span className="text-[10px] sm:text-xs font-semibold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full backdrop-blur-sm whitespace-nowrap"
+              style={{ background: "rgba(255,176,1,0.15)", color: "#FFB001", border: "1px solid rgba(255,176,1,0.25)" }}>
+              🏆 <span className="sm:hidden">Travel Experience of the Year</span><span className="hidden sm:inline">Student Travel Experience of the Year — India</span>
+            </span>
+            <span className="text-[10px] sm:text-xs font-semibold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full backdrop-blur-sm whitespace-nowrap"
+              style={{ background: "rgba(255,176,1,0.15)", color: "#FFB001", border: "1px solid rgba(255,176,1,0.25)" }}>
+              🏆 <span className="sm:hidden">Best AI Travel Planner</span><span className="hidden sm:inline">Best AI-Powered Personal Travel Planner — India</span>
+            </span>
           </div>
 
           {/* Headline */}
           <h1
-            className="text-5xl sm:text-6xl lg:text-[5.5rem] font-bold leading-[1.05] text-white hero-fade-in"
+            className="text-[2.6rem] sm:text-6xl lg:text-[5.5rem] font-bold leading-[1.08] text-white hero-fade-in"
             style={{ fontFamily: "'Clash Display', sans-serif", letterSpacing: "-0.025em", animationDelay: "0.15s" }}
           >
             You start as
@@ -102,7 +98,7 @@ export default function HeroSection() {
                 color: "#FF6016",
                 display: "inline-block",
                 opacity: wordVisible ? 1 : 0,
-                transform: wordVisible ? "translateY(0)" : "translateY(10px)",
+                transform: wordVisible ? "translateY(0)" : "translateY(8px)",
                 transition: "opacity 0.28s ease, transform 0.28s ease",
               }}
             >
@@ -111,39 +107,40 @@ export default function HeroSection() {
           </h1>
 
           <p
-            className="mt-6 text-base sm:text-lg leading-relaxed hero-fade-in"
-            style={{ color: "rgba(255,255,255,0.65)", maxWidth: "420px", animationDelay: "0.28s" }}
+            className="mt-4 text-sm sm:text-base sm:text-lg leading-relaxed hero-fade-in"
+            style={{ color: "rgba(255,255,255,0.65)", maxWidth: "380px", animationDelay: "0.28s" }}
           >
             We did the planning. You do the showing up.
             Your people are already on the list.
           </p>
 
-          <p className="mt-3 text-sm font-semibold hero-fade-in" style={{ color: "#FF6016", animationDelay: "0.35s" }}>
-            Official Travel Partner of Sundarone Hostels · Registered under AIC-MUJ
+          <p className="mt-2 text-[10px] sm:text-sm font-semibold hero-fade-in" style={{ color: "#FF6016", animationDelay: "0.35s" }}>
+            <span className="sm:hidden">Sundarone Hostels · AIC-MUJ</span>
+            <span className="hidden sm:inline">Official Travel Partner of Sundarone Hostels · Registered under AIC-MUJ</span>
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-9 hero-fade-in" style={{ animationDelay: "0.45s" }}>
+          <div className="flex flex-row flex-wrap gap-2.5 mt-7 hero-fade-in" style={{ animationDelay: "0.45s" }}>
             <Link
               href="/trips"
-              className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white transition-all hover:opacity-90 active:scale-95"
+              className="group inline-flex items-center gap-1.5 px-5 py-2.5 sm:px-8 sm:py-4 rounded-full font-bold text-white text-sm transition-all hover:opacity-90 active:scale-95"
               style={{ background: "#FF6016" }}
             >
-              Explore Upcoming Trips
-              <ArrowRight size={17} className="group-hover:translate-x-1 transition-transform" />
+              Explore Trips
+              <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <Link
               href="/sundarone"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-full font-semibold backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
+              className="inline-flex items-center gap-1 px-5 py-2.5 sm:px-8 sm:py-4 rounded-full font-semibold text-sm backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
               style={{ border: "1.5px solid rgba(255,255,255,0.25)", color: "rgba(255,255,255,0.8)" }}
             >
-              Sundarone Students →
+              Sundarone →
             </Link>
           </div>
 
           {/* Stats */}
           <div
-            className="flex flex-wrap gap-8 mt-12 pt-10 border-t hero-fade-in"
+            className="grid grid-cols-2 sm:flex sm:flex-wrap gap-x-6 gap-y-4 sm:gap-8 mt-8 sm:mt-12 pt-7 sm:pt-10 border-t hero-fade-in"
             style={{ borderColor: "rgba(255,255,255,0.1)", animationDelay: "0.55s" }}
           >
             {[
@@ -153,8 +150,8 @@ export default function HeroSection() {
               { num: "17+", label: "Trips Done" },
             ].map((s) => (
               <div key={s.label}>
-                <p className="text-2xl font-bold text-white" style={{ fontFamily: "'Clash Display', sans-serif" }}>{s.num}</p>
-                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{s.label}</p>
+                <p className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "'Clash Display', sans-serif" }}>{s.num}</p>
+                <p className="text-[10px] sm:text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{s.label}</p>
               </div>
             ))}
           </div>
