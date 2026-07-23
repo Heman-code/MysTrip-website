@@ -14,6 +14,12 @@ interface PastTrip {
   amount: number;
 }
 
+interface ReviewableTrip {
+  registrationId: string;
+  tripTitle: string;
+  tripDate: string;
+}
+
 interface Props {
   user: {
     name: string;
@@ -22,18 +28,44 @@ interface Props {
     joinedDate: string;
   };
   pastTrips: PastTrip[];
+  reviewableTrips: ReviewableTrip[];
+  reviewsLeftCount: number;
 }
 
 const tabs = ["Overview", "My Trips", "Leave a Review"];
 
-export default function DashboardClient({ user, pastTrips }: Props) {
+export default function DashboardClient({ user, pastTrips, reviewableTrips, reviewsLeftCount }: Props) {
   const [activeTab, setActiveTab] = useState(0);
-  const [review, setReview] = useState({ trip: "", rating: 0, text: "" });
+  const [review, setReview] = useState({ registrationId: "", rating: 0, text: "" });
   const [reviewSent, setReviewSent] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState("");
 
-  const submitReview = (e: React.FormEvent) => {
+  const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    setReviewSent(true);
+    setReviewError("");
+    setReviewLoading(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          registrationId: review.registrationId,
+          rating: review.rating,
+          text: review.text,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setReviewError(data.error ?? "Something went wrong. Please try again.");
+        return;
+      }
+      setReviewSent(true);
+    } catch {
+      setReviewError("Network error. Please try again.");
+    } finally {
+      setReviewLoading(false);
+    }
   };
 
   const initials = user.name.split(" ").map((n) => n[0]).join("").toUpperCase();
@@ -41,7 +73,7 @@ export default function DashboardClient({ user, pastTrips }: Props) {
   return (
     <div className="min-h-screen" style={{ background: "#F9F7F4" }}>
       {/* Header */}
-      <div style={{ background: "#0B1210" }} className="pt-24 pb-16 relative overflow-hidden">
+      <div style={{ background: "#0B1210" }} className="pt-20 pb-10 sm:pt-24 sm:pb-16 relative overflow-hidden">
         <div className="absolute right-0 top-0 w-64 h-64 opacity-[0.04] pointer-events-none">
           <Image src="/logos/mascot-orange.png" alt="" fill className="object-contain" />
         </div>
@@ -110,7 +142,7 @@ export default function DashboardClient({ user, pastTrips }: Props) {
                 { num: String(pastTrips.length), label: "Trips Taken", icon: "🗺️" },
                 { num: [...new Set(pastTrips.map(t => t.destination.split(",").pop()?.trim()))].length.toString(), label: "States Explored", icon: "📍" },
                 { num: "0", label: "Photos Tagged", icon: "📸" },
-                { num: "0", label: "Reviews Left", icon: "⭐" },
+                { num: String(reviewsLeftCount), label: "Reviews Left", icon: "⭐" },
               ].map((s) => (
                 <div key={s.label} className="bg-white rounded-2xl p-5 text-center border border-gray-100">
                   <p className="text-2xl mb-1">{s.icon}</p>
@@ -271,11 +303,22 @@ export default function DashboardClient({ user, pastTrips }: Props) {
                   We review every submission before it goes live. Your voice helps shape the tribe.
                 </p>
                 <button
-                  onClick={() => { setReviewSent(false); setReview({ trip: "", rating: 0, text: "" }); }}
+                  onClick={() => { setReviewSent(false); setReview({ registrationId: "", rating: 0, text: "" }); }}
                   className="mt-6 text-sm font-semibold px-5 py-2.5 rounded-full border border-gray-200 hover:bg-gray-50 transition-all"
                 >
                   Leave another review
                 </button>
+              </div>
+            ) : reviewableTrips.length === 0 ? (
+              <div className="bg-white rounded-2xl p-10 text-center border border-gray-100">
+                <div className="text-4xl mb-4">⭐</div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+                  No trips ready to review yet
+                </h2>
+                <p className="text-gray-400 text-sm">
+                  Reviews open up once your booking is confirmed and the trip has actually happened —
+                  checked against real bookings, no exceptions.
+                </p>
               </div>
             ) : (
               <div className="bg-white rounded-2xl border border-gray-100 p-8">
@@ -290,24 +333,16 @@ export default function DashboardClient({ user, pastTrips }: Props) {
                     <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Trip</label>
                     <select
                       required
-                      value={review.trip}
-                      onChange={(e) => setReview({ ...review, trip: e.target.value })}
+                      value={review.registrationId}
+                      onChange={(e) => setReview({ ...review, registrationId: e.target.value })}
                       className="w-full px-4 py-3 rounded-xl text-sm text-gray-800 outline-none border border-gray-200 focus:border-orange-400 transition-colors bg-white"
                     >
                       <option value="">Select the trip...</option>
-                      {pastTrips.length > 0
-                        ? pastTrips.map((t) => (
-                            <option key={t.id} value={t.id}>
-                              {t.title} — {new Date(t.tripDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
-                            </option>
-                          ))
-                        : <>
-                            <option>Kedarkantha Trek — Jan 2026</option>
-                            <option>Jaisalmer Desert Weekend — Oct 2025</option>
-                            <option>Udaipur Exploration — Sep 2025</option>
-                            <option>Saan Valley Trek — Sep 2025</option>
-                          </>
-                      }
+                      {reviewableTrips.map((t) => (
+                        <option key={t.registrationId} value={t.registrationId}>
+                          {t.tripTitle} — {new Date(t.tripDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -336,14 +371,19 @@ export default function DashboardClient({ user, pastTrips }: Props) {
                       className="w-full px-4 py-3 rounded-xl text-sm text-gray-800 outline-none border border-gray-200 focus:border-orange-400 transition-colors resize-none placeholder:text-gray-300"
                     />
                   </div>
+                  {reviewError && (
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm bg-red-50 border border-red-100 text-red-600">
+                      ⚠ {reviewError}
+                    </div>
+                  )}
                   <button
                     type="submit"
-                    disabled={!review.rating}
+                    disabled={!review.rating || reviewLoading}
                     className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{ background: "#FF6016" }}
                   >
                     <Send size={15} />
-                    Submit Review
+                    {reviewLoading ? "Submitting..." : "Submit Review"}
                   </button>
                 </form>
               </div>

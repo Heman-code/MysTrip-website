@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { SUNDARONE_ONLY, formatDateRange, daysUntil, nightCount, type Trip } from "@/lib/data/trips";
+import { formatCurrency } from "@/lib/utils";
 
 // Sundarone brand colours
 // Navy:   #0b3d59
@@ -10,11 +11,11 @@ import { SUNDARONE_ONLY, formatDateRange, daysUntil, nightCount, type Trip } fro
 // White:  #ffffff
 
 export const metadata: Metadata = {
-  title: "Sundarone Travel Tribe | Your Hostel. Your Community. Your Adventures.",
+  title: "Sundarone Tribe | Your Hostel. Your Community. Your Adventures.",
   description:
-    "Sundarone Travel Tribe is the official travel community for Sundarone Hostel residents. Jaipur explorations, Aravali treks, weekend escapes, and semester-end trips planned around your academic calendar.",
+    "Sundarone Tribe is the official travel community for Sundarone Hostel residents. Jaipur explorations, Aravali treks, weekend escapes, and semester-end trips planned around your academic calendar.",
   openGraph: {
-    title: "Sundarone Travel Tribe",
+    title: "Sundarone Tribe",
     description: "Your hostel. Your community. Your adventures.",
     images: ["/trips/sundarone-hero-cliff.jpg"],
   },
@@ -64,7 +65,9 @@ function TripCard({ trip }: { trip: Trip }) {
         </h3>
         <p className="text-xs text-gray-400">{formatDateRange(trip.startDate, trip.endDate)}</p>
         <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-50">
-          <span className="text-xs font-medium" style={{ color: "#FF6016" }}>Price revealing soon</span>
+          <span className="text-xs font-medium" style={{ color: "#FF6016" }}>
+            {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Price revealing soon"}
+          </span>
           <span className="text-xs font-semibold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#FF6016" }}>
             Know more <ArrowRight size={12} />
           </span>
@@ -96,7 +99,9 @@ function TripPill({ trip }: { trip: Trip }) {
         </p>
         <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{trip.category.replace(/_/g, " ")}</p>
       </div>
-      <span className="text-xs font-medium flex-shrink-0" style={{ color: "#FF6016" }}>Soon</span>
+      <span className="text-xs font-bold flex-shrink-0" style={{ color: "#FF6016" }}>
+        {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Soon"}
+      </span>
     </Link>
   );
 }
@@ -107,10 +112,26 @@ export default function SundaronePage() {
     <>
       {/* ─── HERO ────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden" style={{ background: "#0b3d59" }}>
-        {/* Real photo — right half, fading left */}
-        <div className="absolute right-0 top-0 h-full w-[45%] hidden lg:block">
-          <Image src="/trips/sundarone-hero-cliff.jpg" alt="" fill className="object-cover" sizes="45vw" priority />
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, #0b3d59 0%, rgba(11,61,89,0.2) 100%)" }} />
+        {/* Real photo — full-bleed on mobile/tablet, right 45% panel fading left on desktop */}
+        <div className="absolute inset-0 lg:inset-auto lg:right-0 lg:top-0 lg:h-full lg:w-[45%]">
+          <Image
+            src="/trips/sundarone-hero-cliff.jpg"
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 1023px) 100vw, 45vw"
+            priority
+          />
+          {/* Mobile/tablet: darken top for text legibility, fade to bg at bottom */}
+          <div
+            className="absolute inset-0 lg:hidden"
+            style={{ background: "linear-gradient(to bottom, rgba(11,61,89,0.35) 0%, rgba(11,61,89,0.8) 55%, #0b3d59 100%)" }}
+          />
+          {/* Desktop: fade from bg colour on the left */}
+          <div
+            className="absolute inset-0 hidden lg:block"
+            style={{ background: "linear-gradient(to right, #0b3d59 0%, rgba(11,61,89,0.2) 100%)" }}
+          />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-14 sm:pb-20">
@@ -186,7 +207,7 @@ export default function SundaronePage() {
       {/* ─── WHAT IS SUNDARONE TRAVEL TRIBE ─────────────────────────────── */}
       <section className="py-12 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-14 items-center">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] mb-3 sm:mb-4" style={{ color: "#FF6016" }}>
                 About
@@ -198,7 +219,7 @@ export default function SundaronePage() {
                 <span style={{ color: "#0b3d59" }}>Now share a story.</span>
               </h2>
               <p className="text-sm sm:text-base leading-relaxed text-gray-500 mb-3 sm:mb-5">
-                Sundarone Travel Tribe is an exclusive travel community for Sundarone Hostel students.
+                Sundarone Tribe is an exclusive travel community for Sundarone Hostel students.
                 Every trip is with your batch — your hallmates, your seniors, your new friends.
                 Not a travel agency. A tribe.
               </p>
@@ -207,14 +228,14 @@ export default function SundaronePage() {
                 Just the windows between sem, filled with experiences you&apos;ll talk about for four years.
               </p>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
                 {[
                   { icon: "🏠", label: "Residents only", sub: "Every trip is exclusively for Sundarone students" },
                   { icon: "🗓️", label: "Exam-safe dates", sub: "Planned around MUJ academic calendar" },
                   { icon: "🧭", label: "Guided trips", sub: "Experienced hosts on every trip" },
                   { icon: "👨‍👩‍👧", label: "Parents welcome", sub: "Networking events for families too" },
                 ].map((item) => (
-                  <div key={item.label} className="p-4 rounded-xl border border-gray-100">
+                  <div key={item.label} className="p-3 sm:p-4 rounded-xl border border-gray-100">
                     <span className="text-xl">{item.icon}</span>
                     <p className="font-bold text-gray-800 text-sm mt-2 mb-1" style={{ fontFamily: "'Clash Display', sans-serif" }}>{item.label}</p>
                     <p className="text-xs text-gray-400 leading-relaxed">{item.sub}</p>
@@ -223,16 +244,16 @@ export default function SundaronePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-                <Image src="/trips/sundarone-hero-cliff.jpg" alt="Udaipur trip" fill className="object-cover" sizes="25vw" />
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <div className="relative aspect-[3/4] rounded-xl sm:rounded-2xl overflow-hidden">
+                <Image src="/trips/sundarone-hero-cliff.jpg" alt="Udaipur trip" fill className="object-cover" sizes="(max-width: 640px) 45vw, 25vw" />
               </div>
-              <div className="flex flex-col gap-3 pt-8">
-                <div className="relative aspect-square rounded-2xl overflow-hidden">
-                  <Image src="/trips/card-kedarkantha-snow-camp.jpg" alt="Achrol Fort Trek" fill className="object-cover" sizes="20vw" />
+              <div className="flex flex-col gap-2.5 sm:gap-3 sm:pt-8">
+                <div className="relative aspect-square rounded-xl sm:rounded-2xl overflow-hidden">
+                  <Image src="/trips/card-kedarkantha-snow-camp.jpg" alt="Achrol Fort Trek" fill className="object-cover" sizes="(max-width: 640px) 40vw, 20vw" />
                 </div>
-                <div className="relative aspect-square rounded-2xl overflow-hidden">
-                  <Image src="/trips/gallery-kedarkantha-peaks-2.jpg" alt="Twin Tower Trek" fill className="object-cover" sizes="20vw" />
+                <div className="relative aspect-square rounded-xl sm:rounded-2xl overflow-hidden">
+                  <Image src="/trips/gallery-kedarkantha-peaks-2.jpg" alt="Twin Tower Trek" fill className="object-cover" sizes="(max-width: 640px) 40vw, 20vw" />
                 </div>
               </div>
             </div>
@@ -242,12 +263,12 @@ export default function SundaronePage() {
 
       {/* ─── UPCOMING TRIPS ──────────────────────────────────────────────── */}
       {featured.length > 0 && (
-        <section id="trips" className="py-20" style={{ background: "#f4f6f9" }}>
+        <section id="trips" className="py-12 sm:py-20" style={{ background: "#f4f6f9" }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-10">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] mb-3" style={{ color: "#FF6016" }}>Coming up</p>
-                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight"
+                <p className="text-xs font-bold uppercase tracking-[0.18em] mb-2 sm:mb-3" style={{ color: "#FF6016" }}>Coming up</p>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight"
                   style={{ fontFamily: "'Clash Display', sans-serif" }}>
                   Next on the calendar.
                 </h2>
@@ -257,27 +278,31 @@ export default function SundaronePage() {
                 All {SUNDARONE_ONLY.length} trips <ArrowRight size={14} />
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {featured.map((trip) => <TripCard key={trip.id} trip={trip} />)}
+            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-3 scrollbar-none md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
+              {featured.map((trip) => (
+                <div key={trip.id} className="shrink-0 w-[78%] xs:w-[68%] snap-center md:w-auto md:shrink">
+                  <TripCard trip={trip} />
+                </div>
+              ))}
             </div>
           </div>
         </section>
       )}
 
       {/* ─── PARENTS NETWORKING ──────────────────────────────────────────── */}
-      <section className="py-20 bg-white">
+      <section className="py-12 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col lg:flex-row gap-10 items-center">
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-center">
               <div className="flex-1">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] mb-4" style={{ color: "#FF6016" }}>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] mb-3 sm:mb-4" style={{ color: "#FF6016" }}>
                   For families · Jul 15–19
                 </p>
-                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-4"
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4"
                   style={{ fontFamily: "'Clash Display', sans-serif" }}>
                   Parents&apos; Networking Week
                 </h2>
-                <p className="text-base text-gray-500 leading-relaxed mb-6">
+                <p className="text-sm sm:text-base text-gray-500 leading-relaxed mb-4 sm:mb-6">
                   When parents leave their child at Sundarone for the first time, they leave a little anxious.
                   This week is for them — curated day trips so families can meet each other and go home
                   knowing the community their child now belongs to.
@@ -320,17 +345,17 @@ export default function SundaronePage() {
       </section>
 
       {/* ─── FULL SEMESTER CALENDAR ──────────────────────────────────────── */}
-      <section id="all-trips" className="py-20" style={{ background: "#f4f6f9" }}>
+      <section id="all-trips" className="py-12 sm:py-20" style={{ background: "#f4f6f9" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-10">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] mb-3" style={{ color: "#FF6016" }}>
+          <div className="mb-6 sm:mb-10">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] mb-2 sm:mb-3" style={{ color: "#FF6016" }}>
               July – December 2026
             </p>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight"
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight"
               style={{ fontFamily: "'Clash Display', sans-serif" }}>
               Your semester calendar.
             </h2>
-            <p className="text-sm text-gray-400 mt-2">
+            <p className="text-xs sm:text-sm text-gray-400 mt-2">
               {SUNDARONE_ONLY.length} trips · Every date planned around your academic calendar
             </p>
           </div>
@@ -342,14 +367,14 @@ export default function SundaronePage() {
       </section>
 
       {/* ─── FINAL CTA ───────────────────────────────────────────────────── */}
-      <section className="py-24" style={{ background: "#0b3d59" }}>
+      <section className="py-14 sm:py-20 lg:py-24" style={{ background: "#0b3d59" }}>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl lg:text-5xl font-bold leading-tight text-white mb-5"
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold leading-tight text-white mb-4 sm:mb-5"
             style={{ fontFamily: "'Clash Display', sans-serif" }}>
             Your tribe is waiting.
           </h2>
-          <p className="text-base mb-10" style={{ color: "rgba(255,255,255,0.45)", lineHeight: "1.7" }}>
-            Join Sundarone Travel Tribe and get first access to every trip this semester.
+          <p className="text-sm sm:text-base mb-6 sm:mb-10" style={{ color: "rgba(255,255,255,0.45)", lineHeight: "1.7" }}>
+            Join Sundarone Tribe and get first access to every trip this semester.
             No drama, just trips.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -358,7 +383,7 @@ export default function SundaronePage() {
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white transition-all hover:opacity-90 active:scale-95"
               style={{ background: "#FF6016" }}
             >
-              Join Sundarone Travel Tribe <ArrowRight size={16} />
+              Join Sundarone Tribe <ArrowRight size={16} />
             </Link>
             <Link
               href="#all-trips"

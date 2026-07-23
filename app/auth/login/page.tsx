@@ -49,7 +49,7 @@ function LoginForm() {
     <div className="min-h-screen flex" style={{ background: "#0B1210" }}>
 
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col p-12 overflow-hidden">
         <Image
           src="/trips/hero-kedarkantha-blizzard-2.jpg"
           alt="The Mountains Await"
@@ -62,23 +62,13 @@ function LoginForm() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-transparent" style={{ zIndex: 1 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" style={{ zIndex: 1 }} />
 
-        {/* Logo */}
-        <div className="relative flex items-center gap-3" style={{ zIndex: 2 }}>
-          <div className="relative w-9 h-9">
-            <Image src="/logos/mascot-orange.png" alt="MysTrip" fill className="object-contain" sizes="36px" />
-          </div>
-          <span className="text-white font-bold text-xl" style={{ fontFamily: "'Clash Display', sans-serif" }}>
-            Mys<span style={{ color: "#FF6016" }}>Trip</span>
-          </span>
-        </div>
-
         {/* Stat pills */}
-        <div className="relative" style={{ zIndex: 2 }}>
+        <div className="relative mt-auto" style={{ zIndex: 2 }}>
           <p className="text-4xl font-bold text-white leading-snug mb-6" style={{ fontFamily: "'Clash Display', sans-serif" }}>
             Your tribe<br />is out there.
           </p>
           <div className="flex flex-wrap gap-3">
-            {["200+ Tribe Members", "8 States Explored", "2 National Awards"].map((s) => (
+            {["2000+ Tribe Members", "8 States Explored", "2 National Awards"].map((s) => (
               <span
                 key={s}
                 className="px-4 py-2 rounded-full text-sm font-semibold text-white"
@@ -93,16 +83,6 @@ function LoginForm() {
 
       {/* Right — form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16">
-
-        {/* Mobile logo */}
-        <div className="flex items-center gap-2.5 mb-10 lg:hidden">
-          <div className="relative w-8 h-8">
-            <Image src="/logos/mascot-orange.png" alt="MysTrip" fill className="object-contain" sizes="32px" />
-          </div>
-          <span className="text-white font-bold text-xl" style={{ fontFamily: "'Clash Display', sans-serif" }}>
-            Mys<span style={{ color: "#FF6016" }}>Trip</span>
-          </span>
-        </div>
 
         <div className="max-w-md w-full">
           <div className="mb-8">
@@ -206,7 +186,7 @@ function LoginForm() {
           >
             <div>
               <p className="text-sm font-bold text-white">New to MysTrip?</p>
-              <p className="text-xs text-white/40 mt-0.5">Join 200+ tribe members across India.</p>
+              <p className="text-xs text-white/40 mt-0.5">Join 2000+ tribe members across India.</p>
             </div>
             <Link
               href="/auth/signup"

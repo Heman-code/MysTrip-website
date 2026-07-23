@@ -97,7 +97,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex" style={{ background: "#0B1210" }}>
 
       {/* Left — photo panel (desktop only) */}
-      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col p-12 overflow-hidden">
         <Image
           src="/trips/gallery-saan-helping-hands.jpg"
           alt="The Tribe"
@@ -110,18 +110,8 @@ export default function SignupPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" style={{ zIndex: 1 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" style={{ zIndex: 1 }} />
 
-        {/* Logo */}
-        <div className="relative flex items-center gap-3" style={{ zIndex: 2 }}>
-          <div className="relative w-9 h-9">
-            <Image src="/logos/mascot-orange.png" alt="MysTrip" fill className="object-contain" sizes="36px" />
-          </div>
-          <span className="text-white font-bold text-xl" style={{ fontFamily: "'Clash Display', sans-serif" }}>
-            Mys<span style={{ color: "#FF6016" }}>Trip</span>
-          </span>
-        </div>
-
         {/* Quote */}
-        <div className="relative" style={{ zIndex: 2 }}>
+        <div className="relative mt-auto" style={{ zIndex: 2 }}>
           <blockquote className="text-3xl font-bold text-white leading-snug mb-4" style={{ fontFamily: "'Clash Display', sans-serif" }}>
             &ldquo;Some people collect things. We collect 2am conversations with people we met 3 days ago.&rdquo;
           </blockquote>
@@ -139,16 +129,6 @@ export default function SignupPage() {
 
       {/* Right — form panel */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16">
-
-        {/* Mobile logo */}
-        <div className="flex items-center gap-2.5 mb-10 lg:hidden">
-          <div className="relative w-8 h-8">
-            <Image src="/logos/mascot-orange.png" alt="MysTrip" fill className="object-contain" sizes="32px" />
-          </div>
-          <span className="text-white font-bold text-xl" style={{ fontFamily: "'Clash Display', sans-serif" }}>
-            Mys<span style={{ color: "#FF6016" }}>Trip</span>
-          </span>
-        </div>
 
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-8">
@@ -385,7 +365,7 @@ export default function SignupPage() {
                 <Link href="/terms" className="text-white/50 hover:text-white underline underline-offset-2">Terms</Link>
                 {" "}and{" "}
                 <Link href="/privacy" className="text-white/50 hover:text-white underline underline-offset-2">Privacy Policy</Link>.
-                We will never spam you. We're building a tribe, not a mailing list.
+                We will never spam you. We&apos;re building a tribe, not a mailing list.
               </p>
 
               <div className="flex gap-3">

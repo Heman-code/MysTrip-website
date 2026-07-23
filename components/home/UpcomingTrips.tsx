@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { ALL_TRIPS, formatDateRange, type Trip } from "@/lib/data/trips";
+import { formatCurrency } from "@/lib/utils";
 
 // Show the 3 soonest upcoming trips on the homepage
 const today = new Date().toISOString().split("T")[0];
@@ -38,7 +39,7 @@ function TripCard({ trip, delay }: { trip: Trip; delay: number }) {
   return (
     <div
       ref={ref}
-      className="transition-all duration-700"
+      className="shrink-0 w-[78%] xs:w-[70%] snap-center sm:w-auto sm:shrink transition-all duration-700"
       style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(40px)", transitionDelay: `${delay}ms` }}
     >
       <Link
@@ -46,7 +47,7 @@ function TripCard({ trip, delay }: { trip: Trip; delay: number }) {
         className="group block rounded-2xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 bg-white"
       >
         {/* Cover photo */}
-        <div className="h-56 relative overflow-hidden">
+        <div className="h-40 sm:h-56 relative overflow-hidden">
           <Image
             src={trip.coverImage}
             alt={trip.title}
@@ -67,20 +68,20 @@ function TripCard({ trip, delay }: { trip: Trip; delay: number }) {
             </span>
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 p-5">
-            <p className="text-xs font-medium text-white/55 uppercase tracking-wide mb-0.5">{trip.destination}</p>
-            <h3 className="text-xl font-bold text-white group-hover:text-[#FFB001] transition-colors" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+          <div className="absolute bottom-0 left-0 right-0 p-3.5 sm:p-5">
+            <p className="text-[10px] sm:text-xs font-medium text-white/55 uppercase tracking-wide mb-0.5">{trip.destination}</p>
+            <h3 className="text-base sm:text-xl font-bold text-white group-hover:text-[#FFB001] transition-colors" style={{ fontFamily: "'Clash Display', sans-serif" }}>
               {trip.title}
             </h3>
           </div>
         </div>
 
-        <div className="p-6">
-          <p className="text-xs text-gray-400 mb-3">📅 {formatDateRange(trip.startDate, trip.endDate)}{trip.departureTime ? ` · ${trip.departureTime}` : ""}</p>
-          <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">{trip.shortDescription}</p>
+        <div className="p-4 sm:p-6">
+          <p className="text-[11px] sm:text-xs text-gray-400 mb-2 sm:mb-3">📅 {formatDateRange(trip.startDate, trip.endDate)}{trip.departureTime ? ` · ${trip.departureTime}` : ""}</p>
+          <p className="text-xs sm:text-sm text-gray-500 leading-relaxed line-clamp-2">{trip.shortDescription}</p>
 
           {/* Slot bar */}
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             <div className="flex justify-between text-xs text-gray-400 mb-1.5">
               <span>{slotsLeft} slots left</span>
               <span>{pct}% filled</span>
@@ -93,12 +94,14 @@ function TripCard({ trip, delay }: { trip: Trip; delay: number }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-5 pt-5 border-t border-gray-50">
+          <div className="flex items-center justify-between mt-3.5 sm:mt-5 pt-3.5 sm:pt-5 border-t border-gray-50">
             <div>
-              <p className="text-xs font-medium" style={{ color: "#FF6016" }}>Price revealing soon</p>
+              <p className="text-[11px] sm:text-xs font-medium" style={{ color: "#FF6016" }}>
+                {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Price revealing soon"}
+              </p>
             </div>
             <span
-              className="inline-flex items-center gap-1.5 text-sm font-bold px-5 py-2.5 rounded-full text-white transition-all group-hover:gap-2.5"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full text-white transition-all group-hover:gap-2.5"
               style={{ background: trip.tagColor }}
             >
               Know More <ArrowRight size={14} />
@@ -124,18 +127,18 @@ export default function UpcomingTrips() {
   }, []);
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-12 sm:py-20 lg:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
           ref={headingRef}
-          className="flex items-end justify-between mb-14 transition-all duration-700"
+          className="flex items-end justify-between mb-6 sm:mb-14 transition-all duration-700"
           style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? "translateY(0)" : "translateY(24px)" }}
         >
           <div>
-            <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "#FF6016" }}>
+            <p className="text-xs sm:text-sm font-bold uppercase tracking-widest mb-2 sm:mb-3" style={{ color: "#FF6016" }}>
               July – December 2026
             </p>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight" style={{ fontFamily: "'Clash Display', sans-serif" }}>
               Upcoming Trips.
               <br />
               <span style={{ color: "#01574A" }}>Slots filling fast.</span>
@@ -146,34 +149,40 @@ export default function UpcomingTrips() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Swipeable on mobile, grid from md up */}
+        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-3 scrollbar-none md:grid md:grid-cols-2 md:gap-6 lg:grid-cols-3 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
           {featuredTrips.map((trip, i) => (
             <TripCard key={trip.id} trip={trip} delay={i * 100} />
           ))}
 
           {/* "See all" filler card */}
           <div
-            className="rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-10 text-center min-h-[420px]"
+            className="shrink-0 w-[78%] xs:w-[70%] snap-center sm:w-auto sm:shrink rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 sm:p-10 text-center min-h-[280px] sm:min-h-[420px]"
             style={{ borderColor: "#FFEFDD" }}
           >
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 text-2xl" style={{ background: "#FFEFDD" }}>
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-3 sm:mb-5 text-xl sm:text-2xl" style={{ background: "#FFEFDD" }}>
               🗓️
             </div>
-            <p className="text-xl font-bold text-gray-800" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+            <p className="text-base sm:text-xl font-bold text-gray-800" style={{ fontFamily: "'Clash Display', sans-serif" }}>
               {ALL_TRIPS.length - 3} More Adventures
             </p>
-            <p className="text-sm text-gray-400 mt-2 max-w-[180px] leading-relaxed">
+            <p className="text-xs sm:text-sm text-gray-400 mt-1.5 sm:mt-2 max-w-[180px] leading-relaxed">
               Treks, weekend escapes, Rishikesh, Ranthambore & Jaisalmer.
             </p>
             <Link
               href="/trips"
-              className="mt-6 text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:opacity-90"
+              className="mt-4 sm:mt-6 text-xs sm:text-sm font-bold px-4 py-2 sm:px-5 sm:py-2.5 rounded-full transition-all hover:opacity-90"
               style={{ background: "#FFEFDD", color: "#FF6016" }}
             >
               See Full Calendar →
             </Link>
           </div>
         </div>
+
+        {/* Mobile-only "view all" link below the carousel */}
+        <Link href="/trips" className="md:hidden mt-5 inline-flex items-center gap-2 text-sm font-bold" style={{ color: "#FF6016" }}>
+          View all {ALL_TRIPS.length} trips <ArrowRight size={16} />
+        </Link>
       </div>
     </section>
   );

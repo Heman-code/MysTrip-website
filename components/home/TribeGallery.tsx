@@ -32,28 +32,28 @@ export default function TribeGallery() {
   }, []);
 
   return (
-    <section className="py-24 overflow-hidden" style={{ background: "#0B1210" }}>
+    <section className="py-12 sm:py-20 lg:py-24 overflow-hidden" style={{ background: "#0B1210" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Heading */}
         <div
           ref={headingRef}
-          className="mb-12 transition-all duration-700"
+          className="mb-6 sm:mb-12 transition-all duration-700"
           style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? "translateY(0)" : "translateY(24px)" }}
         >
-          <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "#FF6016" }}>
+          <p className="text-xs sm:text-sm font-bold uppercase tracking-widest mb-2 sm:mb-3" style={{ color: "#FF6016" }}>
             The Tribe in Action
           </p>
-          <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-20">
+          <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-20">
             <h2
-              className="text-4xl lg:text-5xl font-bold text-white leading-tight"
+              className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight"
               style={{ fontFamily: "'Clash Display', sans-serif", letterSpacing: "-0.02em" }}
             >
               These aren&apos;t stock photos.
               <br />
               <span style={{ color: "#FF6016" }}>This is your future.</span>
             </h2>
-            <p className="text-base leading-relaxed lg:mb-1 max-w-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <p className="text-sm sm:text-base leading-relaxed lg:mb-1 max-w-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
               Every photo is from a real MysTrip experience.
               Real students. Real moments. No filters on the memories.
             </p>
@@ -61,15 +61,15 @@ export default function TribeGallery() {
         </div>
 
         {/* Masonry grid */}
-        <div className="columns-2 md:columns-3 lg:columns-4 gap-3 space-y-3">
+        <div className="columns-2 md:columns-3 lg:columns-4 gap-2 sm:gap-3 space-y-2 sm:space-y-3">
           {photos.map((photo, i) => (
             <GalleryPhoto key={photo.src} photo={photo} delay={i * 60} />
           ))}
         </div>
 
         {/* Bottom strip */}
-        <div className="mt-10 text-center">
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.25)" }}>
+        <div className="mt-6 sm:mt-10 text-center">
+          <p className="text-xs sm:text-sm" style={{ color: "rgba(255,255,255,0.25)" }}>
             Kedarkantha · Jaisalmer · Udaipur · Saan Valley · Ban ki Ghati · Women&apos;s Day Trek · and 11 more
           </p>
         </div>
@@ -96,7 +96,7 @@ function GalleryPhoto({ photo, delay }: { photo: { src: string; label: string; s
   return (
     <div
       ref={ref}
-      className={`relative ${aspectClass} rounded-2xl overflow-hidden mb-3 group cursor-pointer break-inside-avoid transition-all duration-700`}
+      className={`relative ${aspectClass} rounded-2xl overflow-hidden mb-2 sm:mb-3 group cursor-pointer break-inside-avoid transition-all duration-700`}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.97)",

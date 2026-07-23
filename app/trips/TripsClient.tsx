@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { formatDateRange, daysUntil, nightCount, type Trip } from "@/lib/data/trips";
+import { formatCurrency } from "@/lib/utils";
 
 type FilterKey = "all" | "trek" | "day" | "weekend" | "multi";
 
@@ -99,7 +100,9 @@ function TripCard({ trip }: { trip: Trip }) {
 
         {/* CTA row */}
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
-          <p className="text-[10px] font-medium" style={{ color: "#FF6016" }}>Price revealing soon</p>
+          <p className="text-[10px] font-medium" style={{ color: "#FF6016" }}>
+            {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Price revealing soon"}
+          </p>
           <span className="flex items-center gap-1 text-xs font-bold transition-all group-hover:gap-2" style={{ color: trip.tagColor }}>
             Know more <ArrowRight size={11} />
           </span>
@@ -143,11 +146,11 @@ export default function TripsClient({ allTrips }: { allTrips: Trip[] }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-14">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 sm:space-y-14">
         {/* MysTrip trips */}
         {mysTrip.length > 0 && (
           <section>
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
               <span className="w-1 h-7 rounded-full flex-shrink-0" style={{ background: "#FF6016" }} />
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900" style={{ fontFamily: "'Clash Display', sans-serif" }}>
                 MysTrip

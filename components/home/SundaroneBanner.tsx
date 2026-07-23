@@ -18,11 +18,11 @@ export default function SundaroneBanner() {
   }, []);
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-12 sm:py-20 lg:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
           ref={ref}
-          className="rounded-3xl overflow-hidden relative transition-all duration-700"
+          className="rounded-2xl sm:rounded-3xl overflow-hidden relative transition-all duration-700"
           style={{
             background: "linear-gradient(135deg, #0a0c1a 0%, #0e1020 40%, #0c0e1c 100%)",
             opacity: visible ? 1 : 0,
@@ -37,22 +37,22 @@ export default function SundaroneBanner() {
             style={{ background: "rgba(30,60,180,0.07)" }} />
 
           {/* Top label */}
-          <div className="px-10 md:px-14 pt-10 flex items-center gap-3">
+          <div className="px-5 sm:px-10 md:px-14 pt-6 sm:pt-10 flex items-center gap-2 sm:gap-3 flex-wrap">
             <span
-              className="text-xs font-bold tracking-widest uppercase px-3.5 py-1.5 rounded-full"
+              className="text-[10px] sm:text-xs font-bold tracking-widest uppercase px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full"
               style={{ background: "rgba(255,120,0,0.15)", color: "#FF7800", border: "1px solid rgba(255,120,0,0.25)" }}
             >
               Official Travel Partner
             </span>
-            <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.25)" }}>
-              Sundarone Hostels × MysTrip
+            <span className="text-[10px] sm:text-xs font-medium" style={{ color: "rgba(255,255,255,0.25)" }}>
+              Sundarone Tribe · by MysTrip
             </span>
           </div>
 
-          <div className="px-10 md:px-14 pb-12 pt-7 flex flex-col lg:flex-row items-start lg:items-end justify-between gap-10">
+          <div className="px-5 sm:px-10 md:px-14 pb-7 sm:pb-12 pt-5 sm:pt-7 flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 sm:gap-10">
             <div className="max-w-xl">
               <h2
-                className="text-3xl lg:text-5xl font-bold text-white leading-tight"
+                className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white leading-tight"
                 style={{ fontFamily: "'Clash Display', sans-serif", letterSpacing: "-0.02em" }}
               >
                 Living at Sundarone?
@@ -60,13 +60,13 @@ export default function SundaroneBanner() {
                 <span style={{ color: "#FF7800" }}>Your tribe is waiting.</span>
               </h2>
 
-              <p className="mt-5 text-sm leading-relaxed max-w-md" style={{ color: "rgba(255,255,255,0.45)" }}>
+              <p className="mt-3 sm:mt-5 text-xs sm:text-sm leading-relaxed max-w-md" style={{ color: "rgba(255,255,255,0.45)" }}>
                 Semester planned. Budget sorted. People you&apos;d actually want in your group chat.
                 The Sundarone travel calendar is built exclusively for hostel residents —
                 and the first trip is closer than you think.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mt-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 sm:gap-y-3 mt-5 sm:mt-8">
                 {[
                   { icon: "📅", text: "Synced with MUJ academic calendar" },
                   { icon: "💰", text: "Exclusive pricing for residents" },
@@ -83,10 +83,10 @@ export default function SundaroneBanner() {
               </div>
             </div>
 
-            <div className="flex flex-col items-start lg:items-end gap-4 flex-shrink-0">
+            <div className="flex flex-col items-start lg:items-end gap-3 sm:gap-4 flex-shrink-0">
               <Link
                 href="/sundarone"
-                className="group inline-flex items-center gap-2.5 px-8 py-4 rounded-full font-bold text-white transition-all duration-200 hover:opacity-90 active:scale-95"
+                className="group inline-flex items-center gap-2 sm:gap-2.5 px-6 py-3 sm:px-8 sm:py-4 rounded-full font-bold text-white text-sm sm:text-base transition-all duration-200 hover:opacity-90 active:scale-95"
                 style={{ background: "#FF7800" }}
               >
                 View Sundarone Events

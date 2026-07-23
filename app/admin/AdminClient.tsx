@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Star, BarChart2, CheckCircle, Clock } from "lucide-react";
+import { Users, Star, BarChart2, CheckCircle, Clock, XCircle, Receipt } from "lucide-react";
 
 interface UserRow {
   id: string;
@@ -21,18 +21,36 @@ interface ReviewRow {
   tripTitle: string;
 }
 
-interface Props {
-  stats: { totalUsers: number; totalBookings: number; pendingReviews: number };
-  users: UserRow[];
-  pendingReviews: ReviewRow[];
+interface RegistrationRow {
+  id: string;
+  amount: number;
+  whatsappNumber: string | null;
+  guardianPhone: string | null;
+  collegeRegNumber: string | null;
+  referralCode: string | null;
+  paymentScreenshot: string | null;
+  createdAt: string;
+  userName: string;
+  userEmail: string;
+  tripTitle: string;
 }
 
-const tabs = ["Overview", "Users", "Review Approvals"];
+interface Props {
+  stats: { totalUsers: number; totalBookings: number; pendingReviews: number; pendingRegistrations: number };
+  users: UserRow[];
+  pendingReviews: ReviewRow[];
+  pendingRegistrations: RegistrationRow[];
+}
 
-export default function AdminClient({ stats, users, pendingReviews }: Props) {
+const tabs = ["Overview", "Users", "Review Approvals", "Registrations"];
+
+export default function AdminClient({ stats, users, pendingReviews, pendingRegistrations }: Props) {
   const [activeTab, setActiveTab] = useState(0);
   const [reviews, setReviews] = useState(pendingReviews);
   const [approving, setApproving] = useState<string | null>(null);
+  const [registrations, setRegistrations] = useState(pendingRegistrations);
+  const [reviewingReg, setReviewingReg] = useState<string | null>(null);
+  const [zoomedScreenshot, setZoomedScreenshot] = useState<string | null>(null);
 
   const approve = async (id: string) => {
     setApproving(id);
@@ -41,10 +59,23 @@ export default function AdminClient({ stats, users, pendingReviews }: Props) {
     setApproving(null);
   };
 
+  const reviewRegistration = async (id: string, action: "confirm" | "reject") => {
+    setReviewingReg(id);
+    const res = await fetch(`/api/admin/registrations/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    if (res.ok) {
+      setRegistrations((r) => r.filter((rg) => rg.id !== id));
+    }
+    setReviewingReg(null);
+  };
+
   return (
     <div className="min-h-screen" style={{ background: "#F9F7F4" }}>
       {/* Header */}
-      <div style={{ background: "#0B1210" }} className="pt-20 pb-10">
+      <div style={{ background: "#0B1210" }} className="pt-16 pb-6 sm:pt-20 sm:pb-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-6">
             <span
@@ -81,11 +112,12 @@ export default function AdminClient({ stats, users, pendingReviews }: Props) {
         {/* Overview */}
         {activeTab === 0 && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: "Total Members", value: stats.totalUsers, icon: Users, color: "#FF6016" },
                 { label: "Total Bookings", value: stats.totalBookings, icon: BarChart2, color: "#FFB001" },
                 { label: "Pending Reviews", value: stats.pendingReviews, icon: Star, color: "#10b981" },
+                { label: "Pending Registrations", value: stats.pendingRegistrations, icon: Receipt, color: "#6366f1" },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="bg-white rounded-2xl p-6 border border-gray-100 flex items-center gap-4">
                   <div className="rounded-xl p-3" style={{ background: `${color}18` }}>
@@ -103,6 +135,10 @@ export default function AdminClient({ stats, users, pendingReviews }: Props) {
               <h2 className="font-bold text-gray-900 mb-1" style={{ fontFamily: "'Clash Display', sans-serif" }}>Quick actions</h2>
               <p className="text-sm text-gray-400 mb-5">Common tasks at a glance.</p>
               <div className="flex flex-wrap gap-3">
+                <button onClick={() => setActiveTab(3)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 hover:bg-gray-50 transition-all">
+                  <Receipt size={15} className="text-indigo-500" /> Registrations ({stats.pendingRegistrations})
+                </button>
                 <button onClick={() => setActiveTab(2)}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 hover:bg-gray-50 transition-all">
                   <Clock size={15} className="text-orange-500" /> Review queue ({stats.pendingReviews})
@@ -219,7 +255,97 @@ export default function AdminClient({ stats, users, pendingReviews }: Props) {
             ))}
           </div>
         )}
+
+        {/* Registrations */}
+        {activeTab === 3 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-bold text-gray-900" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+                Pending Registrations <span className="text-gray-400 font-normal text-sm ml-2">({registrations.length})</span>
+              </h2>
+            </div>
+
+            {registrations.length === 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                <CheckCircle size={36} className="mx-auto mb-3 text-emerald-400" />
+                <p className="font-semibold text-gray-700">All caught up!</p>
+                <p className="text-sm text-gray-400 mt-1">No registrations waiting for payment verification.</p>
+              </div>
+            )}
+
+            {registrations.map((rg) => (
+              <div key={rg.id} className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="flex flex-col sm:flex-row items-start gap-5">
+                  {rg.paymentScreenshot && (
+                    <button
+                      onClick={() => setZoomedScreenshot(rg.paymentScreenshot)}
+                      className="relative w-full sm:w-32 h-40 sm:h-32 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={rg.paymentScreenshot} alt="Payment screenshot" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors" />
+                    </button>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <span className="font-semibold text-gray-900">{rg.userName}</span>
+                      <span className="text-xs text-gray-400">·</span>
+                      <span className="text-sm text-gray-500">{rg.userEmail}</span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-700 mb-3">{rg.tripTitle}</p>
+
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-gray-500 mb-3">
+                      <p><span className="text-gray-400">Amount:</span> ₹{rg.amount.toLocaleString("en-IN")}</p>
+                      <p><span className="text-gray-400">WhatsApp:</span> {rg.whatsappNumber || "—"}</p>
+                      <p><span className="text-gray-400">Guardian:</span> {rg.guardianPhone || "—"}</p>
+                      <p><span className="text-gray-400">College Reg No:</span> {rg.collegeRegNumber || "—"}</p>
+                      {rg.referralCode && <p><span className="text-gray-400">Referral:</span> {rg.referralCode}</p>}
+                    </div>
+
+                    <p className="text-xs text-gray-400 mb-3">
+                      Submitted {new Date(rg.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    </p>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => reviewRegistration(rg.id, "confirm")}
+                        disabled={reviewingReg === rg.id}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                        style={{ background: "#10b981" }}
+                      >
+                        <CheckCircle size={15} />
+                        {reviewingReg === rg.id ? "Working…" : "Confirm"}
+                      </button>
+                      <button
+                        onClick={() => reviewRegistration(rg.id, "reject")}
+                        disabled={reviewingReg === rg.id}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                        style={{ background: "#ef4444" }}
+                      >
+                        <XCircle size={15} />
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Screenshot zoom overlay */}
+      {zoomedScreenshot && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{ background: "rgba(0,0,0,0.8)" }}
+          onClick={() => setZoomedScreenshot(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={zoomedScreenshot} alt="Payment screenshot" className="max-w-full max-h-full rounded-xl" />
+        </div>
+      )}
     </div>
   );
 }

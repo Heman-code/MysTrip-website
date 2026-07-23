@@ -51,6 +51,22 @@ export const users = pgTable("users", {
   emailIdx: index("users_email_idx").on(t.email),
 }));
 
+// ─── PASSWORD RESET TOKENS ─────────────────────────────────────────────────────
+// Only the SHA-256 hash of the token is stored — the raw token only ever exists
+// in the emailed link, so a DB leak alone can't be used to reset accounts.
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id:        uuid("id").defaultRandom().primaryKey(),
+  userId:    uuid("user_id").references(() => users.id).notNull(),
+  tokenHash: varchar("token_hash", { length: 64 }).notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt:    timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+  tokenIdx: index("prt_token_idx").on(t.tokenHash),
+  userIdx:  index("prt_user_idx").on(t.userId),
+}));
+
 // ─── TRIPS ────────────────────────────────────────────────────────────────────
 
 export const trips = pgTable("trips", {
@@ -139,6 +155,13 @@ export const registrations = pgTable("registrations", {
   emergencyPhone:   varchar("emergency_phone", { length: 20 }),
   medicalInfo:      text("medical_info"),
   selectedTrack:    varchar("selected_track", { length: 100 }), // for multi-track trips
+
+  // In-app registration form (UPI + manual review flow)
+  whatsappNumber:    varchar("whatsapp_number", { length: 20 }),
+  guardianPhone:     varchar("guardian_phone", { length: 20 }),
+  collegeRegNumber:  varchar("college_reg_number", { length: 100 }),
+  paymentScreenshot: text("payment_screenshot"), // base64 data URL, verified manually by an admin
+  referralCode:      varchar("referral_code", { length: 50 }),
 
   createdAt:       timestamp("created_at").defaultNow(),
   updatedAt:       timestamp("updated_at").defaultNow(),

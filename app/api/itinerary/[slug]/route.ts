@@ -4,7 +4,7 @@ import { getTripBySlug } from "@/lib/data/trips";
 // Map slug → internal storage URL (never exposed to client)
 const ITINERARY_URLS: Record<string, string> = {
   // Add real Supabase/R2 URLs here when PDFs are uploaded
-  // "jaipur-exploration-freshers": "https://storage.example.com/itineraries/jaipur-freshers.pdf",
+  // "sundarone-sunrise-to-skyline-jul-25": "https://storage.example.com/itineraries/sunrise-to-skyline.pdf",
 };
 
 export async function GET(

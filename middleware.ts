@@ -5,7 +5,9 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
 
-  if (pathname.startsWith("/dashboard") && !isLoggedIn) {
+  const needsLogin = pathname.startsWith("/dashboard") || pathname.endsWith("/register");
+
+  if (needsLogin && !isLoggedIn) {
     const loginUrl = new URL("/auth/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
@@ -20,5 +22,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/trips/:slug/register"],
 };

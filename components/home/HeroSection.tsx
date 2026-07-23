@@ -71,7 +71,7 @@ export default function HeroSection() {
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`, backgroundSize: "200px" }} />
 
       {/* Content */}
-      <div className="relative flex-1 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-16 sm:pb-20">
+      <div className="relative flex-1 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-10 sm:pb-20">
         <div className="max-w-2xl">
 
           {/* Awards */}
@@ -179,13 +179,17 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* Recognition bar */}
-      <div className="relative border-t backdrop-blur-sm" style={{ borderColor: "rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.3)" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-1">
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>Recognised by</span>
-            {["AIC-MUJ", "Sundarone Hostels", "Travel & Tourism Awards 2026"].map((org) => (
-              <span key={org} className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>{org}</span>
+      {/* Recognition bar — single-line, auto-scrolling, seamless loop */}
+      <div className="relative border-t backdrop-blur-sm overflow-hidden" style={{ borderColor: "rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.3)" }}>
+        <div className="py-2.5 sm:py-3.5">
+          <div className="flex items-center w-max hero-marquee">
+            {[0, 1].map((dup) => (
+              <div key={dup} className="flex items-center gap-5 sm:gap-8 pr-5 sm:pr-8 flex-shrink-0" aria-hidden={dup === 1}>
+                <span className="text-[9px] sm:text-xs font-bold uppercase tracking-widest whitespace-nowrap flex-shrink-0" style={{ color: "rgba(255,255,255,0.25)" }}>Recognised by</span>
+                {["AIC-MUJ", "Sundarone Hostels", "Travel & Tourism Awards 2026"].map((org) => (
+                  <span key={org} className="text-[11px] sm:text-sm font-semibold whitespace-nowrap flex-shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>{org}</span>
+                ))}
+              </div>
             ))}
           </div>
         </div>
@@ -208,6 +212,11 @@ export default function HeroSection() {
           0%,100% { transform: translateX(-50%) translateY(0); }
           50%      { transform: translateX(-50%) translateY(7px); }
         }
+        @keyframes heroMarquee {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        .hero-marquee { animation: heroMarquee 18s linear infinite; }
       `}</style>
     </section>
   );

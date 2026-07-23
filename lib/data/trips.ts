@@ -39,6 +39,7 @@ export interface Trip {
   included: string[];
   excluded: string[];
   registrationOpen: boolean;
+  inAppRegistration?: boolean; // if true, "Register Now" collects a form + UPI payment instead of linking to WhatsApp
   tag: string;
   tagColor: string;
   accentColor: string;
@@ -49,145 +50,7 @@ export interface Trip {
 // ─────────────────────────────────────────────────────────────
 
 const MYSTRIP_TRIPS: Trip[] = [
-  // 1. Jaipur Exploration — Freshers (Jul 25)
-  {
-    id: "jaipur-freshers-jul25",
-    slug: "jaipur-exploration-freshers",
-    title: "Jaipur Exploration — Freshers Edition",
-    shortTitle: "Jaipur Freshers",
-    destination: "Jaipur",
-    state: "Rajasthan",
-    category: "day_exploration",
-    source: "mystrip",
-    startDate: "2026-07-25",
-    endDate: "2026-07-25",
-    departureTime: "7:00 AM",
-    returnTime: "9:00 PM",
-    basePrice: 1499,
-    maxSlots: 50,
-    bookedSlots: 0,
-    difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
-    shortDescription:
-      "Your first real day out as a student in Jaipur. Choose your trail — heritage forts or hidden gems — and come back knowing this city like a local.",
-    longDescription:
-      "Jaipur has two faces. One is the textbook version — Amer Fort, Hawa Mahal, City Palace. The other is the version only locals know — the lane behind Johari Bazaar where they make the best pyaz kachori at 8 AM, the stepwell nobody visits, the rooftop chai spot with a sunset that hits different. Pick your track. Both are the same trip, different lens.",
-    highlights: [
-      "Choose between Heritage Trail or Hidden Gems Trail",
-      "MysTrip host (local MUJ student)",
-      "Sunset rooftop experience",
-      "Street food crawl",
-      "Group photo moments curated",
-    ],
-    tracks: [
-      {
-        name: "Heritage Trail",
-        tagline: "The classics, done properly",
-        highlights: ["Amer Fort (early entry)", "Hawa Mahal", "City Palace courtyard", "Jantar Mantar", "Johari Bazaar walk"],
-      },
-      {
-        name: "Hidden Gems Trail",
-        tagline: "Jaipur the way locals live it",
-        highlights: ["Panna Meena Ka Kund (secret stepwell)", "Old City food trail", "Indie boutiques & vintage bazaars", "Sunset rooftop above Badi Chaupar", "Street photography walk"],
-      },
-    ],
-    included: ["AC tempo traveller", "Breakfast + lunch", "All entry tickets", "MysTrip host", "Trip photo album"],
-    excluded: ["Personal shopping", "Extra food/drinks"],
-    registrationOpen: true,
-    tag: "DAY TRIP",
-    tagColor: "#FF6016",
-    accentColor: "#01574A",
-  },
-
-  // 2. Jaipur Exploration — Batch 2 (Aug 1)
-  {
-    id: "jaipur-batch2-aug1",
-    slug: "jaipur-exploration-aug-1",
-    title: "Jaipur Exploration — Batch 2",
-    shortTitle: "Jaipur Aug 1",
-    destination: "Jaipur",
-    state: "Rajasthan",
-    category: "day_exploration",
-    source: "mystrip",
-    startDate: "2026-08-01",
-    endDate: "2026-08-01",
-    departureTime: "7:00 AM",
-    returnTime: "9:00 PM",
-    basePrice: 1499,
-    maxSlots: 50,
-    bookedSlots: 0,
-    difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
-    shortDescription:
-      "Missed the July batch? Same experience, same two trails. One city. A new group of strangers about to become your people.",
-    longDescription:
-      "Second batch of the Jaipur Exploration. Choose Heritage or Hidden Gems. Same magic, different tribe.",
-    highlights: ["Heritage Trail or Hidden Gems Trail", "MysTrip host", "Sunset rooftop", "Street food crawl"],
-    tracks: [
-      {
-        name: "Heritage Trail",
-        tagline: "The classics, done properly",
-        highlights: ["Amer Fort", "Hawa Mahal", "City Palace", "Jantar Mantar", "Johari Bazaar"],
-      },
-      {
-        name: "Hidden Gems Trail",
-        tagline: "Jaipur the way locals live it",
-        highlights: ["Panna Meena Ka Kund", "Old City food trail", "Indie bazaars", "Sunset rooftop", "Street photography"],
-      },
-    ],
-    included: ["AC transport", "Breakfast + lunch", "Entry tickets", "MysTrip host", "Trip photos"],
-    excluded: ["Personal shopping", "Extra food"],
-    registrationOpen: true,
-    tag: "DAY TRIP",
-    tagColor: "#FF6016",
-    accentColor: "#01574A",
-  },
-
-  // 3. Jaipur Exploration — Batch 3 (Aug 8)
-  {
-    id: "jaipur-batch3-aug8",
-    slug: "jaipur-exploration-aug-8",
-    title: "Jaipur Exploration — Batch 3",
-    shortTitle: "Jaipur Aug 8",
-    destination: "Jaipur",
-    state: "Rajasthan",
-    category: "day_exploration",
-    source: "mystrip",
-    startDate: "2026-08-08",
-    endDate: "2026-08-08",
-    departureTime: "7:00 AM",
-    returnTime: "9:00 PM",
-    basePrice: 1499,
-    maxSlots: 50,
-    bookedSlots: 0,
-    difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
-    shortDescription:
-      "Final Jaipur Exploration batch of the season. If you haven't seen your own city through a traveller's eyes yet — this is it.",
-    longDescription:
-      "Third and final Jaipur Exploration batch for MysTrip students. Never the same experience twice.",
-    highlights: ["Heritage Trail or Hidden Gems Trail", "MysTrip host", "Sunset rooftop", "Street food crawl"],
-    tracks: [
-      {
-        name: "Heritage Trail",
-        tagline: "The classics, done properly",
-        highlights: ["Amer Fort", "Hawa Mahal", "City Palace", "Jantar Mantar", "Johari Bazaar"],
-      },
-      {
-        name: "Hidden Gems Trail",
-        tagline: "Jaipur the way locals live it",
-        highlights: ["Panna Meena Ka Kund", "Old City food trail", "Indie bazaars", "Sunset rooftop", "Street photography"],
-      },
-    ],
-    included: ["AC transport", "Breakfast + lunch", "Entry tickets", "MysTrip host", "Trip photos"],
-    excluded: ["Personal shopping", "Extra food"],
-    registrationOpen: true,
-    tag: "DAY TRIP",
-    tagColor: "#FF6016",
-    accentColor: "#01574A",
-  },
-
-  // 4. Hatni Kund Trek (Aug 22)
+  // 1. Hatni Kund Trek (Aug 22)
   {
     id: "hatni-kund-aug22",
     slug: "hatni-kund-trek",
@@ -225,7 +88,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     accentColor: "#01574A",
   },
 
-  // 5. Pushkar Weekend Escape (Sep 4–5, Janmashtami)
+  // 2. Pushkar Weekend Escape (Sep 4–5, Janmashtami)
   {
     id: "pushkar-sep4-5",
     slug: "pushkar-weekend-escape-janmashtami",
@@ -264,7 +127,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     accentColor: "#7c2d12",
   },
 
-  // 6. Mount Sumel Trek (Sep 6)
+  // 3. Mount Sumel Trek (Sep 6)
   {
     id: "mount-sumel-sep6",
     slug: "mount-sumel-trek",
@@ -300,7 +163,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     accentColor: "#01574A",
   },
 
-  // 7. Rishikesh + Mussoorie Post-Midterm (Sep 26–29)
+  // 4. Rishikesh + Mussoorie Post-Midterm (Sep 26–29)
   {
     id: "rishikesh-mussoorie-sep26-29",
     slug: "rishikesh-mussoorie-post-midterm",
@@ -338,7 +201,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     accentColor: "#1e3a5f",
   },
 
-  // 8. Ranthambore Safari — Weekend Escape (Oct 17–18)
+  // 5. Ranthambore Safari — Weekend Escape (Oct 17–18)
   {
     id: "ranthambore-oct17-18",
     slug: "ranthambore-safari",
@@ -376,7 +239,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     accentColor: "#78350f",
   },
 
-  // 9. Ban ki Ghati Trek (Oct 31)
+  // 6. Ban ki Ghati Trek (Oct 31)
   {
     id: "ban-ki-ghati-oct31",
     slug: "ban-ki-ghati-trek",
@@ -413,7 +276,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     accentColor: "#01574A",
   },
 
-  // 10. Raghunath Fort Trek (Dec 3 AM)
+  // 7. Raghunath Fort Trek (Dec 3 AM)
   {
     id: "raghunath-fort-dec3",
     slug: "raghunath-fort-trek",
@@ -450,7 +313,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     accentColor: "#01574A",
   },
 
-  // 11. Jaisalmer Post-Endterm (Dec 4–7)
+  // 8. Jaisalmer Post-Endterm (Dec 4–7)
   {
     id: "jaisalmer-dec4-7",
     slug: "jaisalmer-post-endterm",
@@ -545,169 +408,284 @@ const SUNDARONE_TRIPS: Trip[] = [
     accentColor: "#FF7800",
   },
 
-  // Sundarone Jaipur Batch 1 — Heritage (Jul 26)
+  // Sundarone Tribe — Sunrise to Skyline, Batch 1 (Sat Jul 25)
   {
-    id: "sundarone-jaipur-jul26",
-    slug: "sundarone-jaipur-heritage-jul-26",
-    title: "Sundarone × MysTrip: Jaipur",
-    shortTitle: "Sundarone Jaipur B1",
+    id: "sundarone-sunrise-skyline-jul25",
+    slug: "sundarone-sunrise-to-skyline-jul-25",
+    title: "Sunrise to Skyline",
+    shortTitle: "Sunrise to Skyline B1",
+    destination: "Jaipur",
+    state: "Rajasthan",
+    category: "day_exploration",
+    source: "sundarone",
+    startDate: "2026-07-25",
+    endDate: "2026-07-25",
+    departureTime: "4:30 AM",
+    returnTime: "9:15 PM",
+    basePrice: 1499,
+    maxSlots: 20,
+    bookedSlots: 0,
+    difficulty: "Easy",
+    coverImage: "/trips/card-raghunath-group.jpg",
+    shortDescription:
+      "A full day through Jaipur's forts — from a lakeside sunrise to a hilltop city skyline at night. Limited to 20 seats.",
+    longDescription:
+      "One day, three sunrises' worth of views, and a status update with the most loved travel tribe on campus. Sunrise at Jal Mahal, boating below Amer Fort, the Sheesh Mahal's mirrored halls, Jaigarh's giant cannon, and Jaipur lit up from Padao Nahargarh after dark.",
+    highlights: [
+      "Sunrise over Jal Mahal — the water palace at dawn",
+      "Maota Lake boating below Amer Fort",
+      "Amer Fort — Sheesh Mahal, courtyards & ramparts",
+      "Panna Meena ka Kund stepwell",
+      "Jaigarh Fort — home to the world's largest wheeled cannon",
+      "Sunset at Padao Nahargarh — Jaipur's best sunset point",
+      "Jaipur's skyline lit up at night",
+    ],
+    included: ["All monument entry tickets (Amer, Jaigarh, Nahargarh)", "Maota Lake boating & Padao Nahargarh entry", "Full transport from & back to MUJ", "On-ground Sundarone Tribe crew"],
+    excluded: ["Meals (breakfast, lunch, snacks)", "Optional Nahargarh Wax Museum + Sheesh Mahal (~₹500, pay at venue)", "Personal shopping / souvenirs"],
+    registrationOpen: true,
+    inAppRegistration: true,
+    tag: "SUNDARONE TRIBE",
+    tagColor: "#FF7800",
+    accentColor: "#FF7800",
+  },
+
+  // Sundarone Tribe — Sunrise to Skyline, Batch 2 (Sat Aug 1)
+  {
+    id: "sundarone-sunrise-skyline-aug1",
+    slug: "sundarone-sunrise-to-skyline-aug-1",
+    title: "Sunrise to Skyline",
+    shortTitle: "Sunrise to Skyline B2",
+    destination: "Jaipur",
+    state: "Rajasthan",
+    category: "day_exploration",
+    source: "sundarone",
+    startDate: "2026-08-01",
+    endDate: "2026-08-01",
+    departureTime: "4:30 AM",
+    returnTime: "9:15 PM",
+    basePrice: 1499,
+    maxSlots: 20,
+    bookedSlots: 0,
+    difficulty: "Easy",
+    coverImage: "/trips/card-raghunath-group.jpg",
+    shortDescription:
+      "A full day through Jaipur's forts — from a lakeside sunrise to a hilltop city skyline at night. Limited to 20 seats.",
+    longDescription:
+      "One day, three sunrises' worth of views, and a status update with the most loved travel tribe on campus. Sunrise at Jal Mahal, boating below Amer Fort, the Sheesh Mahal's mirrored halls, Jaigarh's giant cannon, and Jaipur lit up from Padao Nahargarh after dark.",
+    highlights: [
+      "Sunrise over Jal Mahal — the water palace at dawn",
+      "Maota Lake boating below Amer Fort",
+      "Amer Fort — Sheesh Mahal, courtyards & ramparts",
+      "Panna Meena ka Kund stepwell",
+      "Jaigarh Fort — home to the world's largest wheeled cannon",
+      "Sunset at Padao Nahargarh — Jaipur's best sunset point",
+      "Jaipur's skyline lit up at night",
+    ],
+    included: ["All monument entry tickets (Amer, Jaigarh, Nahargarh)", "Maota Lake boating & Padao Nahargarh entry", "Full transport from & back to MUJ", "On-ground Sundarone Tribe crew"],
+    excluded: ["Meals (breakfast, lunch, snacks)", "Optional Nahargarh Wax Museum + Sheesh Mahal (~₹500, pay at venue)", "Personal shopping / souvenirs"],
+    registrationOpen: true,
+    tag: "SUNDARONE TRIBE",
+    tagColor: "#FF7800",
+    accentColor: "#FF7800",
+  },
+
+  // Sundarone Tribe — Sunrise to Skyline, Batch 3 (Sat Aug 8)
+  {
+    id: "sundarone-sunrise-skyline-aug8",
+    slug: "sundarone-sunrise-to-skyline-aug-8",
+    title: "Sunrise to Skyline",
+    shortTitle: "Sunrise to Skyline B3",
+    destination: "Jaipur",
+    state: "Rajasthan",
+    category: "day_exploration",
+    source: "sundarone",
+    startDate: "2026-08-08",
+    endDate: "2026-08-08",
+    departureTime: "4:30 AM",
+    returnTime: "9:15 PM",
+    basePrice: 1499,
+    maxSlots: 20,
+    bookedSlots: 0,
+    difficulty: "Easy",
+    coverImage: "/trips/card-raghunath-group.jpg",
+    shortDescription:
+      "A full day through Jaipur's forts — from a lakeside sunrise to a hilltop city skyline at night. Limited to 20 seats.",
+    longDescription:
+      "One day, three sunrises' worth of views, and a status update with the most loved travel tribe on campus. Sunrise at Jal Mahal, boating below Amer Fort, the Sheesh Mahal's mirrored halls, Jaigarh's giant cannon, and Jaipur lit up from Padao Nahargarh after dark.",
+    highlights: [
+      "Sunrise over Jal Mahal — the water palace at dawn",
+      "Maota Lake boating below Amer Fort",
+      "Amer Fort — Sheesh Mahal, courtyards & ramparts",
+      "Panna Meena ka Kund stepwell",
+      "Jaigarh Fort — home to the world's largest wheeled cannon",
+      "Sunset at Padao Nahargarh — Jaipur's best sunset point",
+      "Jaipur's skyline lit up at night",
+    ],
+    included: ["All monument entry tickets (Amer, Jaigarh, Nahargarh)", "Maota Lake boating & Padao Nahargarh entry", "Full transport from & back to MUJ", "On-ground Sundarone Tribe crew"],
+    excluded: ["Meals (breakfast, lunch, snacks)", "Optional Nahargarh Wax Museum + Sheesh Mahal (~₹500, pay at venue)", "Personal shopping / souvenirs"],
+    registrationOpen: true,
+    tag: "SUNDARONE TRIBE",
+    tagColor: "#FF7800",
+    accentColor: "#FF7800",
+  },
+
+  // Sundarone Tribe — Secrets of the Pink City, Batch 1 (Sun Jul 26)
+  {
+    id: "sundarone-secrets-pinkcity-jul26",
+    slug: "sundarone-secrets-of-pink-city-jul-26",
+    title: "Secrets of the Pink City",
+    shortTitle: "Secrets of Pink City B1",
     destination: "Jaipur",
     state: "Rajasthan",
     category: "day_exploration",
     source: "sundarone",
     startDate: "2026-07-26",
     endDate: "2026-07-26",
-    departureTime: "7:00 AM",
-    returnTime: "9:00 PM",
+    departureTime: "4:30 AM",
+    returnTime: "8:30 PM",
     basePrice: 1299,
-    maxSlots: 40,
+    maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
     coverImage: "/trips/card-raghunath-group.jpg",
     shortDescription:
-      "Sundarone residents' first day out in Jaipur — Heritage Trail. Amer Fort, Hawa Mahal, City Palace. The Pink City like you've never seen it.",
+      "The hidden temples and iconic landmarks most tourists never put in the same day. Limited to 20 seats.",
     longDescription:
-      "Batch 1 of 4 for Sundarone freshers. This batch takes the Heritage & Historical trail — Amer Fort at sunrise, Hawa Mahal, City Palace courtyard, Jantar Mantar, and the old walled city. Exclusively for Sundarone residents.",
+      "The Jaipur spots most tourists never find — sunrise at a 500-year-old spring, a gate built for reels, and a temple inside the King's own palace. Galtaji, Patrika Gate, Jantar Mantar, City Palace, Hawa Mahal from the inside, Albert Hall, and Birla Mandir after dark.",
     highlights: [
-      "Exclusively for Sundarone Hostel residents",
-      "Heritage Trail: Amer Fort, Hawa Mahal, City Palace",
-      "Jantar Mantar & Johari Bazaar",
-      "Guided by MysTrip host",
+      "Sunrise aarti at Galtaji Temple's natural springs",
+      "Patrika Gate — Jaipur's most photographed arch",
+      "Jantar Mantar — the world's largest stone sundial",
+      "City Palace & Govind Dev Ji Temple",
+      "Hawa Mahal — climb inside the Palace of Winds",
+      "Albert Hall Museum",
+      "Birla Mandir lit up at sunset",
     ],
-    tracks: [
-      {
-        name: "Heritage & Historical Trail",
-        tagline: "The Pink City's greatest monuments",
-        highlights: ["Amer Fort (early entry)", "Hawa Mahal", "City Palace courtyard", "Jantar Mantar", "Johari Bazaar walk"],
-      },
-    ],
-    included: ["AC transport", "Breakfast + lunch", "Entry tickets", "MysTrip host", "Trip photos"],
-    excluded: ["Personal shopping", "Extra food"],
+    included: ["All monument entry tickets (Jantar Mantar, City Palace, Hawa Mahal, Albert Hall)", "Full transport from & back to MUJ", "On-ground Sundarone Tribe crew"],
+    excluded: ["Meals (breakfast, lunch, snacks)", "Personal shopping / souvenirs"],
     registrationOpen: true,
-    tag: "SUNDARONE",
+    inAppRegistration: true,
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },
 
-  // Sundarone Jaipur Batch 2 — Markets & Hidden Gems (Aug 2)
+  // Sundarone Tribe — Secrets of the Pink City, Batch 2 (Sun Aug 2)
   {
-    id: "sundarone-jaipur-aug2",
-    slug: "sundarone-jaipur-hidden-gems-aug-2",
-    title: "Sundarone × MysTrip: Jaipur",
-    shortTitle: "Sundarone Jaipur B2",
+    id: "sundarone-secrets-pinkcity-aug2",
+    slug: "sundarone-secrets-of-pink-city-aug-2",
+    title: "Secrets of the Pink City",
+    shortTitle: "Secrets of Pink City B2",
     destination: "Jaipur",
     state: "Rajasthan",
     category: "day_exploration",
     source: "sundarone",
     startDate: "2026-08-02",
     endDate: "2026-08-02",
-    departureTime: "7:00 AM",
-    returnTime: "9:00 PM",
+    departureTime: "4:30 AM",
+    returnTime: "8:30 PM",
     basePrice: 1299,
-    maxSlots: 40,
+    maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
     coverImage: "/trips/card-raghunath-group.jpg",
     shortDescription:
-      "Batch 2 — Hidden Gems Trail. The Jaipur only locals know: secret stepwells, indie markets, old city food trail, and a sunset rooftop.",
+      "The hidden temples and iconic landmarks most tourists never put in the same day. Limited to 20 seats.",
     longDescription:
-      "The hidden side of Jaipur. Panna Meena Ka Kund (the stepwell nobody visits), indie boutiques, the lane with the best pyaz kachori in the city, and a sunset rooftop you'll want to come back to every week.",
+      "The Jaipur spots most tourists never find — sunrise at a 500-year-old spring, a gate built for reels, and a temple inside the King's own palace. Galtaji, Patrika Gate, Jantar Mantar, City Palace, Hawa Mahal from the inside, Albert Hall, and Birla Mandir after dark.",
     highlights: [
-      "Panna Meena Ka Kund (secret stepwell)",
-      "Old City food trail",
-      "Indie bazaars & vintage markets",
-      "Sunset rooftop above Badi Chaupar",
-      "Street photography walk",
+      "Sunrise aarti at Galtaji Temple's natural springs",
+      "Patrika Gate — Jaipur's most photographed arch",
+      "Jantar Mantar — the world's largest stone sundial",
+      "City Palace & Govind Dev Ji Temple",
+      "Hawa Mahal — climb inside the Palace of Winds",
+      "Albert Hall Museum",
+      "Birla Mandir lit up at sunset",
     ],
-    tracks: [
-      {
-        name: "Markets, Hidden Gems & Food Trail",
-        tagline: "Jaipur the way locals live it",
-        highlights: ["Panna Meena Ka Kund", "Old City food trail", "Indie boutiques", "Sunset rooftop", "Street photography"],
-      },
-    ],
-    included: ["AC transport", "Breakfast + lunch", "MysTrip host", "Trip photos"],
-    excluded: ["Personal shopping", "Extra food"],
+    included: ["All monument entry tickets (Jantar Mantar, City Palace, Hawa Mahal, Albert Hall)", "Full transport from & back to MUJ", "On-ground Sundarone Tribe crew"],
+    excluded: ["Meals (breakfast, lunch, snacks)", "Personal shopping / souvenirs"],
     registrationOpen: true,
-    tag: "SUNDARONE",
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },
 
-  // Sundarone Jaipur Batch 3 — Heritage (Aug 9, same as Jul 26)
+  // Sundarone Tribe — Secrets of the Pink City, Batch 3 (Sun Aug 9)
   {
-    id: "sundarone-jaipur-aug9",
-    slug: "sundarone-jaipur-heritage-aug-9",
-    title: "Sundarone × MysTrip: Jaipur",
-    shortTitle: "Sundarone Jaipur B3",
+    id: "sundarone-secrets-pinkcity-aug9",
+    slug: "sundarone-secrets-of-pink-city-aug-9",
+    title: "Secrets of the Pink City",
+    shortTitle: "Secrets of Pink City B3",
     destination: "Jaipur",
     state: "Rajasthan",
     category: "day_exploration",
     source: "sundarone",
     startDate: "2026-08-09",
     endDate: "2026-08-09",
-    departureTime: "7:00 AM",
-    returnTime: "9:00 PM",
+    departureTime: "4:30 AM",
+    returnTime: "8:30 PM",
     basePrice: 1299,
-    maxSlots: 40,
+    maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
     coverImage: "/trips/card-raghunath-group.jpg",
     shortDescription:
-      "Batch 3 — Heritage Trail. Amer Fort, Hawa Mahal, City Palace. If you missed Batch 1, this is your chance to do it right.",
+      "The hidden temples and iconic landmarks most tourists never put in the same day. Limited to 20 seats.",
     longDescription:
-      "Third batch. Heritage trail — same as July 26. The monuments don't change. Your group does.",
-    highlights: ["Amer Fort", "Hawa Mahal", "City Palace", "Jantar Mantar", "Johari Bazaar"],
-    tracks: [
-      {
-        name: "Heritage & Historical Trail",
-        tagline: "The Pink City's greatest monuments",
-        highlights: ["Amer Fort", "Hawa Mahal", "City Palace", "Jantar Mantar", "Johari Bazaar"],
-      },
+      "The Jaipur spots most tourists never find — sunrise at a 500-year-old spring, a gate built for reels, and a temple inside the King's own palace. Galtaji, Patrika Gate, Jantar Mantar, City Palace, Hawa Mahal from the inside, Albert Hall, and Birla Mandir after dark.",
+    highlights: [
+      "Sunrise aarti at Galtaji Temple's natural springs",
+      "Patrika Gate — Jaipur's most photographed arch",
+      "Jantar Mantar — the world's largest stone sundial",
+      "City Palace & Govind Dev Ji Temple",
+      "Hawa Mahal — climb inside the Palace of Winds",
+      "Albert Hall Museum",
+      "Birla Mandir lit up at sunset",
     ],
-    included: ["AC transport", "Breakfast + lunch", "Entry tickets", "MysTrip host", "Trip photos"],
-    excluded: ["Personal shopping", "Extra food"],
+    included: ["All monument entry tickets (Jantar Mantar, City Palace, Hawa Mahal, Albert Hall)", "Full transport from & back to MUJ", "On-ground Sundarone Tribe crew"],
+    excluded: ["Meals (breakfast, lunch, snacks)", "Personal shopping / souvenirs"],
     registrationOpen: true,
-    tag: "SUNDARONE",
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },
 
-  // Sundarone Jaipur Batch 4 — Hidden Gems (Aug 16, same as Aug 2)
+  // Sundarone Tribe — Secrets of the Pink City, Batch 4 (Sun Aug 16)
   {
-    id: "sundarone-jaipur-aug16",
-    slug: "sundarone-jaipur-hidden-gems-aug-16",
-    title: "Sundarone × MysTrip: Jaipur",
-    shortTitle: "Sundarone Jaipur B4",
+    id: "sundarone-secrets-pinkcity-aug16",
+    slug: "sundarone-secrets-of-pink-city-aug-16",
+    title: "Secrets of the Pink City",
+    shortTitle: "Secrets of Pink City B4",
     destination: "Jaipur",
     state: "Rajasthan",
     category: "day_exploration",
     source: "sundarone",
     startDate: "2026-08-16",
     endDate: "2026-08-16",
-    departureTime: "7:00 AM",
-    returnTime: "9:00 PM",
+    departureTime: "4:30 AM",
+    returnTime: "8:30 PM",
     basePrice: 1299,
-    maxSlots: 40,
+    maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
     coverImage: "/trips/card-raghunath-group.jpg",
     shortDescription:
-      "Final Jaipur batch for Sundarone — Hidden Gems Trail. The secret Jaipur. Markets, food, stepwells, sunset rooftops.",
+      "The hidden temples and iconic landmarks most tourists never put in the same day. Limited to 20 seats.",
     longDescription:
-      "Fourth and final Sundarone Jaipur batch. Hidden Gems trail — same as August 2. Last chance to see Jaipur properly before the semester picks up.",
-    highlights: ["Panna Meena Ka Kund", "Old City food trail", "Indie bazaars", "Sunset rooftop", "Street photography"],
-    tracks: [
-      {
-        name: "Markets, Hidden Gems & Food Trail",
-        tagline: "Jaipur the way locals live it",
-        highlights: ["Panna Meena Ka Kund", "Old City food trail", "Indie boutiques", "Sunset rooftop", "Street photography"],
-      },
+      "The Jaipur spots most tourists never find — sunrise at a 500-year-old spring, a gate built for reels, and a temple inside the King's own palace. Galtaji, Patrika Gate, Jantar Mantar, City Palace, Hawa Mahal from the inside, Albert Hall, and Birla Mandir after dark.",
+    highlights: [
+      "Sunrise aarti at Galtaji Temple's natural springs",
+      "Patrika Gate — Jaipur's most photographed arch",
+      "Jantar Mantar — the world's largest stone sundial",
+      "City Palace & Govind Dev Ji Temple",
+      "Hawa Mahal — climb inside the Palace of Winds",
+      "Albert Hall Museum",
+      "Birla Mandir lit up at sunset",
     ],
-    included: ["AC transport", "Breakfast + lunch", "MysTrip host", "Trip photos"],
-    excluded: ["Personal shopping", "Extra food"],
+    included: ["All monument entry tickets (Jantar Mantar, City Palace, Hawa Mahal, Albert Hall)", "Full transport from & back to MUJ", "On-ground Sundarone Tribe crew"],
+    excluded: ["Meals (breakfast, lunch, snacks)", "Personal shopping / souvenirs"],
     registrationOpen: true,
-    tag: "SUNDARONE",
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },
@@ -745,7 +723,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     included: ["Transport", "Trek guide", "First aid", "Energy snacks", "Trip photos"],
     excluded: ["Meals", "Personal water (bring 2L+)"],
     registrationOpen: true,
-    tag: "SUNDARONE",
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },
@@ -784,7 +762,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     included: ["AC sleeper bus (Jaipur ↔ Mount Abu)", "2 nights accommodation", "Daily breakfast + 1 dinner", "Local sightseeing transport", "MysTrip host", "Trip photos"],
     excluded: ["Lunch all days", "Entry fees for some sites", "Personal activities"],
     registrationOpen: true,
-    tag: "SUNDARONE",
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },
@@ -821,7 +799,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     included: ["Transport", "Trek guide", "First aid", "Snacks", "Trip photos"],
     excluded: ["Meals", "Personal water (bring 2L+)"],
     registrationOpen: true,
-    tag: "SUNDARONE",
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },
@@ -860,7 +838,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     included: ["AC sleeper bus (Jaipur ↔ Udaipur)", "2 nights accommodation", "Daily breakfast + 1 dinner", "City Palace entry", "Boat ride", "Local transport", "MysTrip host", "Trip photos"],
     excluded: ["Lunch all days", "Personal shopping", "Additional site entries"],
     registrationOpen: true,
-    tag: "SUNDARONE",
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },
@@ -898,7 +876,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     included: ["Transport", "Safari gypsy booking", "Naturalist guide", "1 night stay", "Breakfast + dinner", "Park entry", "Trip photos"],
     excluded: ["Lunch", "Extra safaris"],
     registrationOpen: true,
-    tag: "SUNDARONE",
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },
@@ -937,7 +915,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     included: ["AC sleeper bus (Jaipur ↔ Jaisalmer)", "4 nights accommodation (2 hotel + 2 desert camp)", "Daily breakfast + 3 dinners", "Camel trek + jeep safari", "All entry tickets", "MysTrip host", "Trip photos & reels"],
     excluded: ["Lunch all days", "Personal shopping"],
     registrationOpen: false,
-    tag: "SUNDARONE",
+    tag: "SUNDARONE TRIBE",
     tagColor: "#FF7800",
     accentColor: "#FF7800",
   },

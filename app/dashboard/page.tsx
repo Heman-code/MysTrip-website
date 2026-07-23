@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { users, registrations, trips } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { users, registrations, trips, reviews } from "@/lib/db/schema";
+import { and, eq } from "drizzle-orm";
 import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {
@@ -37,6 +37,22 @@ export default async function DashboardPage() {
     ? dbUser.createdAt.toLocaleString("en-US", { month: "long", year: "numeric" })
     : new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
 
+  // Trips eligible for a review: booking confirmed, trip actually happened, not already reviewed
+  const reviewedRegIds = dbUser
+    ? new Set((await db.select({ registrationId: reviews.registrationId }).from(reviews).where(eq(reviews.userId, dbUser.id))).map((r) => r.registrationId))
+    : new Set<string>();
+
+  const reviewableRegs = dbUser
+    ? await db
+        .select({ registrationId: registrations.id, tripTitle: trips.title, tripDate: trips.tripDate })
+        .from(registrations)
+        .innerJoin(trips, eq(registrations.tripId, trips.id))
+        .where(and(eq(registrations.userId, dbUser.id), eq(registrations.bookingStatus, "confirmed"), eq(trips.status, "executed")))
+        .orderBy(trips.tripDate)
+    : [];
+
+  const reviewableTrips = reviewableRegs.filter((r) => !reviewedRegIds.has(r.registrationId));
+
   return (
     <DashboardClient
       user={{
@@ -53,6 +69,12 @@ export default async function DashboardPage() {
         category: t.category ?? "trek",
         amount: Number(t.amount),
       }))}
+      reviewableTrips={reviewableTrips.map((r) => ({
+        registrationId: r.registrationId,
+        tripTitle: r.tripTitle,
+        tripDate: r.tripDate ?? "",
+      }))}
+      reviewsLeftCount={reviewedRegIds.size}
     />
   );
 }

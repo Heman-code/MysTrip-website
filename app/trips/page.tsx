@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ALL_TRIPS } from "@/lib/data/trips";
+import { ALL_TRIPS, MYSTRIP_ONLY, getUpcomingTrips } from "@/lib/data/trips";
 import TripsClient from "./TripsClient";
 
 export const metadata: Metadata = {
@@ -13,33 +13,34 @@ export const metadata: Metadata = {
 export default function TripsPage() {
   const trekCount = ALL_TRIPS.filter((t) => t.category === "trek").length;
   const openCount = ALL_TRIPS.filter((t) => t.registrationOpen).length;
+  const firstTrip = getUpcomingTrips(1, "mystrip")[0] ?? MYSTRIP_ONLY[0];
 
   return (
     <>
       {/* Hero */}
-      <section className="relative pt-28 pb-16 overflow-hidden" style={{ background: "#0B1210" }}>
+      <section className="relative pt-20 pb-10 sm:pt-28 sm:pb-16 overflow-hidden" style={{ background: "#0B1210" }}>
         <div className="absolute inset-0 opacity-20">
           <Image src="/trips/hero-kedarkantha-blizzard-2.jpg" alt="" fill className="object-cover object-top" priority />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#0B1210]/60 via-[#0B1210]/80 to-[#0B1210]" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#FF6016" }}>
+          <p className="text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3" style={{ color: "#FF6016" }}>
             Academic Year 2026–27
           </p>
           <h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
+            className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
             style={{ fontFamily: "'Clash Display', sans-serif", letterSpacing: "-0.02em" }}
           >
             Find your next
             <br />
             <span style={{ color: "#FF6016" }}>adventure.</span>
           </h1>
-          <p className="mt-4 text-sm sm:text-base text-white/50 max-w-sm leading-relaxed">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-white/50 max-w-sm leading-relaxed">
             Treks, day trips, weekends, and multi-day escapes — all planned around your semester.
           </p>
 
-          <div className="flex flex-wrap gap-6 mt-8 pt-8 border-t border-white/10">
+          <div className="flex flex-wrap gap-4 sm:gap-6 mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-white/10">
             {[
               { num: `${ALL_TRIPS.length}`, label: "Total trips" },
               { num: `${trekCount}`, label: "Treks" },
@@ -47,7 +48,7 @@ export default function TripsPage() {
               { num: "2", label: "National awards" },
             ].map((s) => (
               <div key={s.label}>
-                <p className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "'Clash Display', sans-serif" }}>{s.num}</p>
+                <p className="text-xl sm:text-3xl font-bold text-white" style={{ fontFamily: "'Clash Display', sans-serif" }}>{s.num}</p>
                 <p className="text-[10px] mt-0.5 text-white/35 uppercase tracking-wide">{s.label}</p>
               </div>
             ))}
@@ -59,19 +60,19 @@ export default function TripsPage() {
       <TripsClient allTrips={ALL_TRIPS} />
 
       {/* Bottom CTA */}
-      <section className="py-16 text-center" style={{ background: "#01574A" }}>
+      <section className="py-12 sm:py-16 text-center" style={{ background: "#01574A" }}>
         <div className="max-w-md mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+          <h2 className="text-xl sm:text-3xl font-bold text-white mb-3" style={{ fontFamily: "'Clash Display', sans-serif" }}>
             Not sure where to start?
           </h2>
           <p className="text-white/60 mb-7 text-sm leading-relaxed">
-            First timers always start with Jaipur Exploration — a day trip, zero commitment, maximum memories.
+            First timers always start with {firstTrip.shortTitle} — zero commitment, maximum memories.
           </p>
           <Link
-            href="/trips/jaipur-exploration-freshers"
+            href={`/trips/${firstTrip.slug}`}
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-[#01574A] bg-white hover:bg-[#FFEFDD] transition-colors text-sm"
           >
-            Start with Jaipur →
+            Start with {firstTrip.shortTitle} →
           </Link>
         </div>
       </section>

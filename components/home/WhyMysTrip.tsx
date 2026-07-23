@@ -46,7 +46,7 @@ function PillarCard({ emoji, title, description, delay }: typeof pillars[0] & { 
   return (
     <div
       ref={ref}
-      className="group relative bg-white rounded-2xl p-7 hover:shadow-xl transition-all duration-500 cursor-default overflow-hidden"
+      className="group relative shrink-0 w-[75%] xs:w-[68%] snap-center sm:w-auto sm:shrink bg-white rounded-2xl p-5 sm:p-7 hover:shadow-xl transition-all duration-500 cursor-default overflow-hidden"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(40px)",
@@ -59,14 +59,14 @@ function PillarCard({ emoji, title, description, delay }: typeof pillars[0] & { 
         style={{ background: "linear-gradient(135deg, rgba(255,96,22,0.04) 0%, transparent 60%)" }}
       />
 
-      <div className="text-3xl mb-5">{emoji}</div>
+      <div className="text-2xl sm:text-3xl mb-3 sm:mb-5">{emoji}</div>
       <h3
-        className="text-xl font-bold text-gray-900 mb-3"
+        className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3"
         style={{ fontFamily: "'Clash Display', sans-serif" }}
       >
         {title}
       </h3>
-      <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
+      <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">{description}</p>
 
       {/* Bottom accent line */}
       <div
@@ -91,35 +91,35 @@ export default function WhyMysTrip() {
   }, []);
 
   return (
-    <section className="py-24 overflow-hidden" style={{ background: "#FFEFDD" }}>
+    <section className="py-12 sm:py-20 lg:py-24 overflow-hidden" style={{ background: "#FFEFDD" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Section header */}
         <div
           ref={headingRef}
-          className="mb-14 transition-all duration-700"
+          className="mb-6 sm:mb-14 transition-all duration-700"
           style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? "translateY(0)" : "translateY(24px)" }}
         >
-          <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "#FF6016" }}>
+          <p className="text-xs sm:text-sm font-bold uppercase tracking-widest mb-2 sm:mb-3" style={{ color: "#FF6016" }}>
             Why MysTrip
           </p>
-          <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-16">
+          <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-16">
             <h2
-              className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight"
+              className="text-2xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight"
               style={{ fontFamily: "'Clash Display', sans-serif" }}
             >
               Travel&apos;s better with people
               <br />
               <span style={{ color: "#FF6016" }}>who actually get it.</span>
             </h2>
-            <p className="text-gray-500 max-w-sm text-base leading-relaxed lg:mb-1">
+            <p className="text-gray-500 max-w-sm text-sm sm:text-base leading-relaxed lg:mb-1">
               We summited 12,500 ft on the Kedarkantha because we wanted that experience — not because it was the cheapest option. Every trip starts with one question: is this actually worth doing?
             </p>
           </div>
         </div>
 
-        {/* Cards grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Cards — swipeable on mobile, grid from sm up */}
+        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-3 scrollbar-none sm:grid sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 sm:overflow-visible sm:mx-0 sm:px-0 sm:pb-0">
           {pillars.map((p, i) => (
             <PillarCard key={p.title} {...p} delay={i * 100} />
           ))}
@@ -127,18 +127,18 @@ export default function WhyMysTrip() {
 
         {/* Bottom mascot strip */}
         <div
-          className="mt-16 rounded-2xl flex flex-col md:flex-row items-center gap-8 px-8 py-10 overflow-hidden relative"
+          className="mt-8 sm:mt-16 rounded-2xl flex flex-col md:flex-row items-center gap-5 sm:gap-8 px-5 py-7 sm:px-8 sm:py-10 overflow-hidden relative"
           style={{ background: "#01574A" }}
         >
           <div className="absolute right-0 top-0 bottom-0 w-48 opacity-10 pointer-events-none select-none">
             <Image src="/logo-mark.png" alt="" fill className="object-contain object-right" aria-hidden />
           </div>
           <div className="flex-1 relative">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#FFB001" }}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3" style={{ color: "#FFB001" }}>
               Our voice
             </p>
             <p
-              className="text-2xl lg:text-3xl font-bold text-white leading-snug"
+              className="text-lg sm:text-2xl lg:text-3xl font-bold text-white leading-snug"
               style={{ fontFamily: "'Clash Display', sans-serif" }}
             >
               &ldquo;Not a tour. Not a package.
@@ -146,7 +146,7 @@ export default function WhyMysTrip() {
             </p>
           </div>
           <div className="flex-shrink-0">
-            <p className="text-sm text-green-200 text-center md:text-right leading-relaxed max-w-xs">
+            <p className="text-xs sm:text-sm text-green-200 text-center md:text-right leading-relaxed max-w-xs">
               2 national awards. 900+ students.<br />
               12,500 ft summited. Zero compromises.
             </p>
