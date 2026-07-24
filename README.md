@@ -34,3 +34,10 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+### This project's deployment
+
+- **Live at:** [mystrip.in](https://mystrip.in) / [www.mystrip.in](https://www.mystrip.in), hosted on Vercel (`heman-codes-projects/mystrip-website`).
+- **Auto-deploy:** the Vercel project is connected to this GitHub repo (`main` branch). Any `git push` to `main` builds and deploys automatically — no manual `vercel deploy` needed.
+- **Environment variables** (`DATABASE_URL`, `AUTH_SECRET`, `SMTP_*`, `UPSTASH_REDIS_REST_*`) are set directly in the Vercel project settings (Production + Preview), not committed to the repo. Update them there if a credential rotates.
+- **DNS** is managed at GoDaddy. The `@` A records and `www` CNAME point to Vercel; MX/SPF/DKIM/DMARC records for email are untouched.
