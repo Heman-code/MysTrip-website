@@ -26,10 +26,10 @@ interface ReviewRow {
 interface RegistrationRow {
   id: string;
   amount: number;
+  discountAmount: number;
   whatsappNumber: string | null;
   guardianPhone: string | null;
   collegeRegNumber: string | null;
-  referralCode: string | null;
   paymentScreenshot: string | null;
   createdAt: string;
   userName: string;
@@ -361,7 +361,9 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
                       <p><span className="text-gray-400">WhatsApp:</span> {rg.whatsappNumber || "—"}</p>
                       <p><span className="text-gray-400">Guardian:</span> {rg.guardianPhone || "—"}</p>
                       <p><span className="text-gray-400">College Reg No:</span> {rg.collegeRegNumber || "—"}</p>
-                      {rg.referralCode && <p><span className="text-gray-400">Referral:</span> {rg.referralCode}</p>}
+                      {rg.discountAmount > 0 && (
+                        <p><span className="text-gray-400">Coupon discount:</span> <span className="text-emerald-600 font-semibold">− ₹{rg.discountAmount.toLocaleString("en-IN")}</span></p>
+                      )}
                     </div>
 
                     <p className="text-xs text-gray-400 mb-3">

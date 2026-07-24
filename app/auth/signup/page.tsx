@@ -24,10 +24,13 @@ export default function SignupPage() {
     password: "",
     role: "",
     college: "",
+    hasTraveledBefore: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [coupon, setCoupon] = useState<{ code: string; discountPercent: number; maxDiscountAmount: number } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +48,7 @@ export default function SignupPage() {
           phone: form.phone,
           password: form.password,
           college: form.college,
+          hasTraveledBefore: form.hasTraveledBefore,
         }),
       });
       const data = await res.json();
@@ -57,6 +61,7 @@ export default function SignupPage() {
       });
       if (result?.error) { setError("Account created but login failed. Try logging in."); setLoading(false); return; }
 
+      if (data.coupon) setCoupon(data.coupon);
       setDone(true);
     } catch {
       setError("Network error. Please try again.");
@@ -78,9 +83,43 @@ export default function SignupPage() {
           <h1 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: "'Clash Display', sans-serif" }}>
             You&apos;re in the Tribe.
           </h1>
-          <p className="text-white/50 mb-8" style={{ fontFamily: "Mozilla Text, system-ui, sans-serif" }}>
+          <p className="text-white/50 mb-6" style={{ fontFamily: "Mozilla Text, system-ui, sans-serif" }}>
             Welcome, {form.name.split(" ")[0]}. Your people are already waiting.
           </p>
+
+          {coupon && (
+            <div
+              className="rounded-2xl p-5 mb-8 text-left"
+              style={{ background: "rgba(255,96,22,0.08)", border: "1.5px solid rgba(255,96,22,0.25)" }}
+            >
+              <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#FF6016" }}>
+                🎉 A little welcome gift
+              </p>
+              <p className="text-sm text-white/60 mb-4">
+                {form.hasTraveledBefore
+                  ? "Welcome back. That's worth something to us."
+                  : "This one's on the house for showing up."}
+                {" "}Apply it whenever you register for your first trip.
+              </p>
+              <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ background: "rgba(0,0,0,0.25)" }}>
+                <div>
+                  <p className="font-mono font-bold text-white text-lg tracking-wide">{coupon.code}</p>
+                  <p className="text-xs text-white/40 mt-0.5">
+                    {coupon.discountPercent}% off, up to ₹{coupon.maxDiscountAmount.toLocaleString("en-IN")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard.writeText(coupon.code); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                  className="flex-shrink-0 text-xs font-bold px-3.5 py-2 rounded-full transition-all hover:opacity-90"
+                  style={{ background: "#FF6016", color: "#fff" }}
+                >
+                  {copied ? "Copied!" : "Copy"}
+                </button>
+              </div>
+            </div>
+          )}
+
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-white transition-all hover:scale-105"
@@ -306,6 +345,26 @@ export default function SignupPage() {
                   onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
                 />
               </div>
+
+              <label
+                className="flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all"
+                style={{
+                  background: form.hasTraveledBefore ? "rgba(255,96,22,0.1)" : "rgba(255,255,255,0.04)",
+                  border: form.hasTraveledBefore ? "1.5px solid #FF6016" : "1.5px solid rgba(255,255,255,0.07)",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.hasTraveledBefore}
+                  onChange={(e) => setForm({ ...form, hasTraveledBefore: e.target.checked })}
+                  className="mt-0.5 w-[18px] h-[18px] flex-shrink-0"
+                  style={{ accentColor: "#FF6016" }}
+                />
+                <div>
+                  <p className="text-sm font-bold text-white">Been on a MysTrip trip before? 🙋</p>
+                  <p className="text-xs text-white/40 mt-0.5">We remember our people — that&apos;s worth a bigger welcome gift.</p>
+                </div>
+              </label>
 
               <div className="flex gap-3">
                 <button type="button" onClick={() => setStep(0)} className="flex-1 py-4 rounded-xl font-semibold text-white/60 hover:text-white transition-colors" style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.08)" }}>

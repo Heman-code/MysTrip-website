@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { and, eq, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { registrations, trips, users } from "@/lib/db/schema";
+import { coupons, registrations, trips, users } from "@/lib/db/schema";
 import { getDbTripBySlug } from "@/lib/db/trips";
+import { computeDiscount } from "@/lib/coupons";
 
 const MAX_SCREENSHOT_BASE64_LENGTH = 5_600_000; // ~4MB decoded
 
@@ -20,13 +21,38 @@ export async function POST(req: NextRequest) {
     whatsappNumber,
     guardianPhone,
     collegeRegNumber,
-    referralCode,
+    couponCode,
     paymentScreenshot,
   } = body ?? {};
 
   const trip = slug ? await getDbTripBySlug(slug) : null;
   if (!trip || !trip.registrationOpen) {
     return NextResponse.json({ error: "Registration is not open for this trip." }, { status: 400 });
+  }
+
+  // Re-validate the coupon authoritatively — never trust a client-sent amount.
+  // Since the QR they already paid was generated with this same discount, a
+  // coupon that's gone invalid between quote and submit must fail loudly
+  // rather than silently charge a different amount than what was actually paid.
+  let finalAmount = Number(trip.basePrice);
+  let discountAmount = 0;
+  let coupon: typeof coupons.$inferSelect | null = null;
+  if (typeof couponCode === "string" && couponCode.trim()) {
+    const [found] = await db
+      .select()
+      .from(coupons)
+      .where(eq(coupons.code, couponCode.trim().toUpperCase()))
+      .limit(1);
+    if (!found || found.userId !== session.user.id || found.isUsed) {
+      return NextResponse.json(
+        { error: "That coupon is no longer valid. Please go back and reapply, or continue without it." },
+        { status: 409 }
+      );
+    }
+    coupon = found;
+    const result = computeDiscount(Number(trip.basePrice), found.discountPercent, Number(found.maxDiscountAmount));
+    discountAmount = result.discountAmount;
+    finalAmount = result.finalAmount;
   }
 
   const requiredFields = { whatsappNumber, guardianPhone, collegeRegNumber };
@@ -65,11 +91,13 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       tripId: dbTripId,
       bookingStatus: "pending_payment",
-      amount: trip.basePrice,
+      amount: finalAmount.toString(),
+      discountApplied: discountAmount > 0,
+      discountAmount: discountAmount.toString(),
+      couponId: coupon?.id ?? null,
       whatsappNumber: whatsappNumber.trim(),
       guardianPhone: guardianPhone.trim(),
       collegeRegNumber: collegeRegNumber.trim(),
-      referralCode: referralCode?.trim() || null,
       paymentScreenshot,
     })
     .returning({ id: registrations.id });
@@ -78,6 +106,13 @@ export async function POST(req: NextRequest) {
     .update(trips)
     .set({ bookedSlots: sql`${trips.bookedSlots} + 1` })
     .where(eq(trips.id, dbTripId));
+
+  if (coupon) {
+    await db
+      .update(coupons)
+      .set({ isUsed: true, usedAt: new Date(), usedOnRegistrationId: registration.id })
+      .where(eq(coupons.id, coupon.id));
+  }
 
   return NextResponse.json({ ok: true, registrationId: registration.id }, { status: 201 });
 }

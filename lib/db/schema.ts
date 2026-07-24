@@ -1,6 +1,6 @@
 import {
   pgTable, uuid, varchar, text, numeric, integer, timestamp,
-  pgEnum, boolean, jsonb, index, date
+  pgEnum, boolean, jsonb, index, date, type AnyPgColumn
 } from "drizzle-orm/pg-core";
 
 // ─── ENUMS ────────────────────────────────────────────────────────────────────
@@ -19,6 +19,7 @@ export const expenseCategoryEnum = pgEnum("expense_category", ["transport", "acc
 export const membershipTierEnum = pgEnum("membership_tier",   ["explorer", "adventurer", "summit"]);
 export const billingPeriodEnum  = pgEnum("billing_period",    ["monthly", "annual"]);
 export const membershipStatusEnum = pgEnum("membership_status", ["active", "canceled", "expired"]);
+export const couponTypeEnum       = pgEnum("coupon_type",       ["welcome_new", "welcome_returning"]);
 
 // ─── ADMIN USERS ──────────────────────────────────────────────────────────────
 // Separate from regular users. Hemant's team + Sundarone hostel owner login.
@@ -45,6 +46,7 @@ export const users = pgTable("users", {
   college:              varchar("college", { length: 255 }),
   avatarUrl:            varchar("avatar_url", { length: 500 }),
   isSundaroneResident:  boolean("is_sundarone_resident").default(false),
+  hasTraveledBefore:    boolean("has_traveled_before").default(false), // self-declared at signup, drives welcome coupon tier
   lastActiveAt:         timestamp("last_active_at"),
   createdAt:            timestamp("created_at").defaultNow(),
 }, (t) => ({
@@ -128,6 +130,26 @@ export const trips = pgTable("trips", {
   statusIdx:  index("trips_status_idx").on(t.status),
 }));
 
+// ─── COUPONS ───────────────────────────────────────────────────────────────────
+// One welcome coupon is auto-issued per user at signup (5%/₹500 cap for new
+// travelers, 10%/₹1000 cap for self-declared returning ones). One-time use.
+
+export const coupons = pgTable("coupons", {
+  id:                   uuid("id").defaultRandom().primaryKey(),
+  userId:               uuid("user_id").references(() => users.id).notNull(),
+  code:                 varchar("code", { length: 30 }).notNull().unique(),
+  type:                 couponTypeEnum("type").notNull(),
+  discountPercent:      integer("discount_percent").notNull(),
+  maxDiscountAmount:    numeric("max_discount_amount", { precision: 10, scale: 2 }).notNull(),
+  isUsed:               boolean("is_used").default(false),
+  usedAt:               timestamp("used_at"),
+  usedOnRegistrationId: uuid("used_on_registration_id").references((): AnyPgColumn => registrations.id),
+  createdAt:            timestamp("created_at").defaultNow(),
+}, (t) => ({
+  codeIdx: index("coupons_code_idx").on(t.code),
+  userIdx: index("coupons_user_idx").on(t.userId),
+}));
+
 // ─── REGISTRATIONS / BOOKINGS ─────────────────────────────────────────────────
 
 export const registrations = pgTable("registrations", {
@@ -138,10 +160,11 @@ export const registrations = pgTable("registrations", {
   // Booking state (richer than old simple status)
   bookingStatus:   bookingStatusEnum("booking_status").default("pending_payment"),
 
-  // Amount actually charged (may differ from basePrice if membership discount applied)
+  // Amount actually charged (may differ from basePrice if a coupon was applied)
   amount:          numeric("amount", { precision: 10, scale: 2 }).notNull(),
   discountApplied: boolean("discount_applied").default(false),
   discountAmount:  numeric("discount_amount", { precision: 10, scale: 2 }).default("0"),
+  couponId:        uuid("coupon_id").references(() => coupons.id),
 
   // Razorpay references
   razorpayOrderId:   varchar("razorpay_order_id", { length: 255 }),
@@ -288,6 +311,7 @@ export type Expense      = typeof expenses.$inferSelect;
 export type Membership   = typeof memberships.$inferSelect;
 export type Review       = typeof reviews.$inferSelect;
 export type BlogPost     = typeof blogPosts.$inferSelect;
+export type Coupon       = typeof coupons.$inferSelect;
 
 export type NewTrip         = typeof trips.$inferInsert;
 export type NewRegistration = typeof registrations.$inferInsert;

@@ -1,8 +1,11 @@
 import { redirect, notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
+import { db } from "@/lib/db";
+import { coupons } from "@/lib/db/schema";
 import { getDbTripBySlug } from "@/lib/db/trips";
-import { generateUpiQrDataUrl, UPI_ID } from "@/lib/upi";
+import { UPI_ID } from "@/lib/upi";
 import RegisterClient from "./RegisterClient";
 
 interface Props {
@@ -21,10 +24,15 @@ export default async function RegisterPage({ params }: Props) {
   if (!trip || !trip.registrationOpen) notFound();
 
   const session = await auth();
-  if (!session?.user) redirect(`/auth/login?callbackUrl=/trips/${slug}/register`);
+  if (!session?.user?.id) redirect(`/auth/login?callbackUrl=/trips/${slug}/register`);
 
   const basePrice = Number(trip.basePrice);
-  const qrDataUrl = await generateUpiQrDataUrl(basePrice, `${trip.title} ${trip.shortTitle ?? ""}`);
+
+  const [myCoupon] = await db
+    .select()
+    .from(coupons)
+    .where(and(eq(coupons.userId, session.user.id), eq(coupons.isUsed, false)))
+    .limit(1);
 
   return (
     <RegisterClient
@@ -37,10 +45,14 @@ export default async function RegisterPage({ params }: Props) {
         startDate: trip.tripDate,
         tagColor: trip.tagColor ?? "#FF6016",
       }}
-      qrDataUrl={qrDataUrl}
       upiId={UPI_ID}
       userName={session.user.name ?? ""}
       userEmail={session.user.email ?? ""}
+      myCoupon={
+        myCoupon
+          ? { code: myCoupon.code, discountPercent: myCoupon.discountPercent, maxDiscountAmount: Number(myCoupon.maxDiscountAmount) }
+          : null
+      }
     />
   );
 }

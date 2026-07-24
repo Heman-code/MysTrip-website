@@ -41,10 +41,10 @@ export default async function AdminPage() {
       db.select({
         id: registrations.id,
         amount: registrations.amount,
+        discountAmount: registrations.discountAmount,
         whatsappNumber: registrations.whatsappNumber,
         guardianPhone: registrations.guardianPhone,
         collegeRegNumber: registrations.collegeRegNumber,
-        referralCode: registrations.referralCode,
         paymentScreenshot: registrations.paymentScreenshot,
         createdAt: registrations.createdAt,
         userName: users.fullName,
@@ -79,6 +79,7 @@ export default async function AdminPage() {
       pendingRegistrations={rawRegistrations.map((r) => ({
         ...r,
         amount: Number(r.amount),
+        discountAmount: Number(r.discountAmount ?? 0),
         createdAt: r.createdAt?.toISOString() ?? "",
       }))}
       trips={allTrips.map((t) => ({

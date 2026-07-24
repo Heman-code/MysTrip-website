@@ -4,6 +4,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { authRatelimit } from "@/lib/ratelimit";
+import { issueWelcomeCoupon } from "@/lib/coupons";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { name, email, phone, password, college } = await req.json();
+    const { name, email, phone, password, college, hasTraveledBefore } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Name, email and password are required." }, { status: 400 });
@@ -46,10 +47,20 @@ export async function POST(req: NextRequest) {
         phone: phone?.trim() || null,
         passwordHash,
         college: college?.trim() || null,
+        hasTraveledBefore: !!hasTraveledBefore,
       })
       .returning({ id: users.id, email: users.email });
 
-    return NextResponse.json({ ok: true, userId: newUser.id }, { status: 201 });
+    const coupon = await issueWelcomeCoupon(newUser.id, !!hasTraveledBefore);
+
+    return NextResponse.json(
+      {
+        ok: true,
+        userId: newUser.id,
+        coupon: { code: coupon.code, discountPercent: coupon.discountPercent, maxDiscountAmount: Number(coupon.maxDiscountAmount) },
+      },
+      { status: 201 }
+    );
   } catch (err) {
     console.error("[signup]", err);
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });

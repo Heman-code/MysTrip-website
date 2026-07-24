@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, Copy, Upload, ArrowRight, ShieldCheck } from "lucide-react";
+import { Check, Copy, Upload, ArrowRight, ShieldCheck, Tag, Sparkles, X } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface TripSummary {
@@ -16,12 +16,26 @@ interface TripSummary {
   tagColor: string;
 }
 
+interface CouponInfo {
+  code: string;
+  discountPercent: number;
+  maxDiscountAmount: number;
+}
+
+interface Quote {
+  originalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  qrDataUrl: string;
+  coupon: { code: string; discountPercent: number } | null;
+}
+
 interface Props {
   trip: TripSummary;
-  qrDataUrl: string;
   upiId: string;
   userName: string;
   userEmail: string;
+  myCoupon: CouponInfo | null;
 }
 
 const MAX_SCREENSHOT_BYTES = 4 * 1024 * 1024;
@@ -36,7 +50,7 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userEmail }: Props) {
+export default function RegisterClient({ trip, upiId, userName, userEmail, myCoupon }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(0);
@@ -45,13 +59,47 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
   const [confirmedPaid, setConfirmedPaid] = useState(false);
   const [guardianPhone, setGuardianPhone] = useState("");
   const [collegeRegNumber, setCollegeRegNumber] = useState("");
-  const [referralCode, setReferralCode] = useState("");
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [screenshotData, setScreenshotData] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+
+  // Coupon (applied on step 0)
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponInfo | null>(null);
+  const [couponApplying, setCouponApplying] = useState(false);
+  const [couponError, setCouponError] = useState("");
+
+  // Quote + celebration (fetched entering step 1)
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  const applyCoupon = async (code: string) => {
+    if (!code.trim()) return;
+    setCouponApplying(true);
+    setCouponError("");
+    try {
+      const res = await fetch("/api/registrations/apply-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCouponError(data.error ?? "Couldn't apply that code.");
+        return;
+      }
+      setAppliedCoupon(data.coupon);
+      setCouponInput("");
+    } catch {
+      setCouponError("Network error. Please try again.");
+    } finally {
+      setCouponApplying(false);
+    }
+  };
 
   const handleFile = async (file: File | undefined) => {
     setError("");
@@ -75,7 +123,7 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const goToPayment = (e: React.FormEvent) => {
+  const goToPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!fullName.trim() || !whatsappNumber.trim()) {
@@ -83,6 +131,28 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
       return;
     }
     setStep(1);
+    setQuoteLoading(true);
+    try {
+      const res = await fetch("/api/registrations/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: trip.slug, couponCode: appliedCoupon?.code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Couldn't load the payment QR. Please go back and try again.");
+        return;
+      }
+      setQuote(data);
+      if (data.discountAmount > 0) {
+        setShowCelebration(true);
+        setTimeout(() => setShowCelebration(false), 3000);
+      }
+    } catch {
+      setError("Network error loading payment details.");
+    } finally {
+      setQuoteLoading(false);
+    }
   };
 
   const goToDetails = () => {
@@ -118,7 +188,7 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
           whatsappNumber,
           guardianPhone,
           collegeRegNumber,
-          referralCode,
+          couponCode: appliedCoupon?.code,
           paymentScreenshot: screenshotData,
         }),
       });
@@ -158,10 +228,10 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
             <Check size={26} style={{ color: "#10b981" }} />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-3" style={{ fontFamily: "'Clash Display', sans-serif" }}>
-            Registration submitted.
+            You&apos;re on the list.
           </h1>
           <p className="text-white/50 text-sm leading-relaxed mb-8">
-            We&apos;ll verify your payment against {trip.title} and confirm your seat within 24 hours. You can track the status from your dashboard.
+            We&apos;ll check your payment against {trip.title} and lock in your seat within 24 hours. We&apos;re genuinely excited you&apos;re coming — track the status from your dashboard.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -185,7 +255,30 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "#0B1210" }}>
+    <div className="min-h-screen relative" style={{ background: "#0B1210" }}>
+      {/* Celebration overlay */}
+      {showCelebration && quote && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center px-4"
+          style={{ background: "rgba(11,18,16,0.92)" }}
+        >
+          <div className="text-center">
+            <div className="text-5xl mb-4" style={{ animation: "celebrationPop 0.5s ease" }}>🎉</div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+              You saved {formatCurrency(quote.discountAmount)}!
+            </h2>
+            <p className="text-white/50 text-sm">That&apos;s chai for the whole trip, on us.</p>
+          </div>
+          <style>{`
+            @keyframes celebrationPop {
+              0% { transform: scale(0.5); opacity: 0; }
+              60% { transform: scale(1.15); opacity: 1; }
+              100% { transform: scale(1); }
+            }
+          `}</style>
+        </div>
+      )}
+
       <div className="max-w-xl mx-auto px-4 sm:px-6 pt-24 sm:pt-28 pb-16">
         {step === 0 ? (
           <Link href={`/trips/${trip.slug}`} className="text-sm text-white/40 hover:text-white/70 transition-colors mb-6 inline-block">
@@ -209,7 +302,16 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
           </div>
           <div className="text-right flex-shrink-0">
             <p className="text-xs text-white/40">Amount</p>
-            <p className="text-lg font-bold text-white">{formatCurrency(trip.basePrice)}</p>
+            {appliedCoupon ? (
+              <>
+                <p className="text-xs text-white/30 line-through">{formatCurrency(trip.basePrice)}</p>
+                <p className="text-lg font-bold" style={{ color: "#10b981" }}>
+                  {formatCurrency(Math.max(trip.basePrice - Math.min(Math.round((trip.basePrice * appliedCoupon.discountPercent) / 100), appliedCoupon.maxDiscountAmount), 0))}
+                </p>
+              </>
+            ) : (
+              <p className="text-lg font-bold text-white">{formatCurrency(trip.basePrice)}</p>
+            )}
           </div>
         </div>
 
@@ -277,6 +379,73 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
               />
             </div>
 
+            {/* Coupon / referral */}
+            <div>
+              <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-1.5">Got a coupon or referral code?</label>
+
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ background: "rgba(16,185,129,0.1)", border: "1.5px solid rgba(16,185,129,0.3)" }}>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Check size={16} style={{ color: "#10b981" }} className="flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{appliedCoupon.code} applied</p>
+                      <p className="text-xs text-white/40">{appliedCoupon.discountPercent}% off, up to {formatCurrency(appliedCoupon.maxDiscountAmount)}</p>
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setAppliedCoupon(null)} className="flex-shrink-0 p-1.5 rounded-full hover:bg-white/10 transition-colors">
+                    <X size={14} className="text-white/50" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {myCoupon && (
+                    <button
+                      type="button"
+                      onClick={() => applyCoupon(myCoupon.code)}
+                      disabled={couponApplying}
+                      className="w-full flex items-center justify-between gap-3 rounded-xl px-4 py-3 mb-2.5 text-left transition-all hover:opacity-90 disabled:opacity-60"
+                      style={{ background: "rgba(255,96,22,0.1)", border: "1.5px solid rgba(255,96,22,0.3)" }}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Sparkles size={16} style={{ color: "#FF6016" }} className="flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-white">You&apos;ve got a coupon — {myCoupon.discountPercent}% off</p>
+                          <p className="text-xs text-white/40 font-mono">{myCoupon.code}</p>
+                        </div>
+                      </div>
+                      <span className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full" style={{ background: "#FF6016", color: "#fff" }}>
+                        {couponApplying ? "…" : "Apply"}
+                      </span>
+                    </button>
+                  )}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/25" />
+                      <input
+                        type="text"
+                        placeholder="Enter a code"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value)}
+                        className="w-full pl-10 pr-3.5 py-3 rounded-xl text-white text-sm outline-none transition-all placeholder:text-white/20"
+                        style={inputStyle}
+                        {...focusHandlers}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => applyCoupon(couponInput)}
+                      disabled={couponApplying || !couponInput.trim()}
+                      className="px-5 py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-40 flex-shrink-0"
+                      style={{ background: "rgba(255,255,255,0.08)" }}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {couponError && <p className="text-xs mt-2" style={{ color: "#f87171" }}>{couponError}</p>}
+                </>
+              )}
+            </div>
+
             {error && (
               <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm" style={{ background: "rgba(239,68,68,0.08)", border: "1.5px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
                 <span>⚠</span> {error}
@@ -296,53 +465,79 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
         {/* Step 1 — Pay */}
         {step === 1 && (
           <div className="rounded-2xl p-6 space-y-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <div>
-              <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Clash Display', sans-serif" }}>Pay via UPI</h1>
-              <p className="text-white/40 text-sm">Scan and pay {formatCurrency(trip.basePrice)} — then come back and confirm below.</p>
-            </div>
-
-            <div className="bg-white rounded-xl p-3 w-fit mx-auto">
-              <Image src={qrDataUrl} alt="UPI QR code" width={220} height={220} unoptimized />
-            </div>
-            <p className="text-center text-white/40 text-xs">Scan with any UPI app — amount is pre-filled to {formatCurrency(trip.basePrice)}</p>
-
-            <div className="flex items-center gap-2 rounded-xl px-4 py-3" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <span className="flex-1 text-sm text-white font-mono truncate">{upiId}</span>
-              <button
-                type="button"
-                onClick={copyUpiId}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 transition-all"
-                style={{ background: copied ? "rgba(16,185,129,0.15)" : "rgba(255,96,22,0.12)", color: copied ? "#10b981" : "#FF6016" }}
-              >
-                {copied ? <Check size={13} /> : <Copy size={13} />}
-                {copied ? "Copied" : "Copy"}
-              </button>
-            </div>
-
-            <label className="flex items-start gap-3 rounded-xl px-4 py-3.5 cursor-pointer transition-all" style={{ background: confirmedPaid ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.03)", border: confirmedPaid ? "1.5px solid rgba(16,185,129,0.3)" : "1.5px solid rgba(255,255,255,0.08)" }}>
-              <input
-                type="checkbox"
-                checked={confirmedPaid}
-                onChange={(e) => setConfirmedPaid(e.target.checked)}
-                className="mt-0.5 w-4 h-4 accent-orange-500 flex-shrink-0"
-              />
-              <span className="text-sm text-white/70">I&apos;ve completed the payment of {formatCurrency(trip.basePrice)} to the UPI ID above.</span>
-            </label>
-
-            {error && (
-              <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm" style={{ background: "rgba(239,68,68,0.08)", border: "1.5px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
-                <span>⚠</span> {error}
+            {quoteLoading || !quote ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-3">
+                <span className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <p className="text-white/40 text-sm">Working out your total...</p>
               </div>
-            )}
+            ) : (
+              <>
+                <div>
+                  <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Clash Display', sans-serif" }}>Pay via UPI</h1>
+                  <p className="text-white/40 text-sm">Scan and pay {formatCurrency(quote.finalAmount)} — then come back and confirm below.</p>
+                </div>
 
-            <button
-              type="button"
-              onClick={goToDetails}
-              className="w-full py-4 rounded-xl font-bold text-white transition-all hover:opacity-90 flex items-center justify-center gap-2"
-              style={{ background: "#FF6016" }}
-            >
-              I&apos;ve Paid — Continue <ArrowRight size={16} />
-            </button>
+                {quote.discountAmount > 0 && (
+                  <div className="rounded-xl px-4 py-3 space-y-1.5" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Trip price</span>
+                      <span className="text-white/40 line-through">{formatCurrency(quote.originalAmount)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/50">Coupon ({quote.coupon?.code})</span>
+                      <span style={{ color: "#10b981" }}>− {formatCurrency(quote.discountAmount)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold pt-1.5 border-t" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+                      <span className="text-white">You pay</span>
+                      <span className="text-white">{formatCurrency(quote.finalAmount)}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-white rounded-xl p-3 w-fit mx-auto">
+                  <Image src={quote.qrDataUrl} alt="UPI QR code" width={220} height={220} unoptimized />
+                </div>
+                <p className="text-center text-white/40 text-xs">Scan with any UPI app — amount is pre-filled to {formatCurrency(quote.finalAmount)}</p>
+
+                <div className="flex items-center gap-2 rounded-xl px-4 py-3" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <span className="flex-1 text-sm text-white font-mono truncate">{upiId}</span>
+                  <button
+                    type="button"
+                    onClick={copyUpiId}
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 transition-all"
+                    style={{ background: copied ? "rgba(16,185,129,0.15)" : "rgba(255,96,22,0.12)", color: copied ? "#10b981" : "#FF6016" }}
+                  >
+                    {copied ? <Check size={13} /> : <Copy size={13} />}
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+
+                <label className="flex items-start gap-3 rounded-xl px-4 py-3.5 cursor-pointer transition-all" style={{ background: confirmedPaid ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.03)", border: confirmedPaid ? "1.5px solid rgba(16,185,129,0.3)" : "1.5px solid rgba(255,255,255,0.08)" }}>
+                  <input
+                    type="checkbox"
+                    checked={confirmedPaid}
+                    onChange={(e) => setConfirmedPaid(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-orange-500 flex-shrink-0"
+                  />
+                  <span className="text-sm text-white/70">I&apos;ve completed the payment of {formatCurrency(quote.finalAmount)} to the UPI ID above.</span>
+                </label>
+
+                {error && (
+                  <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm" style={{ background: "rgba(239,68,68,0.08)", border: "1.5px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
+                    <span>⚠</span> {error}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={goToDetails}
+                  className="w-full py-4 rounded-xl font-bold text-white transition-all hover:opacity-90 flex items-center justify-center gap-2"
+                  style={{ background: "#FF6016" }}
+                >
+                  I&apos;ve Paid — Continue <ArrowRight size={16} />
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -351,8 +546,17 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
           <form onSubmit={handleSubmit} className="rounded-2xl p-6 space-y-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
             <div>
               <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Clash Display', sans-serif" }}>Almost there</h1>
-              <p className="text-white/40 text-sm">A few last details, plus your payment screenshot.</p>
+              <p className="text-white/40 text-sm">A few last details, plus your payment screenshot. You&apos;re basically already on the trip.</p>
             </div>
+
+            {quote && quote.discountAmount > 0 && (
+              <div className="flex items-center gap-2.5 rounded-xl px-4 py-3" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                <Sparkles size={15} style={{ color: "#10b981" }} className="flex-shrink-0" />
+                <p className="text-sm text-white/70">
+                  Coupon <span className="font-bold text-white">{quote.coupon?.code}</span> saved you {formatCurrency(quote.discountAmount)}.
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-1.5">Guardian&apos;s Number</label>
@@ -376,19 +580,6 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
                 placeholder="e.g. R2XXXXXXXXX"
                 value={collegeRegNumber}
                 onChange={(e) => setCollegeRegNumber(e.target.value)}
-                className="w-full px-3.5 py-3 rounded-xl text-white text-sm outline-none transition-all placeholder:text-white/20"
-                style={inputStyle}
-                {...focusHandlers}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-1.5">Referral / Coupon Code <span className="normal-case text-white/25">(optional)</span></label>
-              <input
-                type="text"
-                placeholder="If someone referred you"
-                value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value)}
                 className="w-full px-3.5 py-3 rounded-xl text-white text-sm outline-none transition-all placeholder:text-white/20"
                 style={inputStyle}
                 {...focusHandlers}
@@ -444,10 +635,10 @@ export default function RegisterClient({ trip, qrDataUrl, upiId, userName, userE
               {loading ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Submitting...
+                  Locking in your seat...
                 </>
               ) : (
-                <>Submit Registration <ArrowRight size={16} /></>
+                <>Confirm My Seat <ArrowRight size={16} /></>
               )}
             </button>
 
