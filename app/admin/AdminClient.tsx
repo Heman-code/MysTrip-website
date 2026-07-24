@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Star, BarChart2, CheckCircle, Clock, XCircle, Receipt } from "lucide-react";
+import Image from "next/image";
+import { Users, Star, BarChart2, CheckCircle, Clock, XCircle, Receipt, Plus, Pencil, MapPin } from "lucide-react";
+import TripForm from "./TripForm";
 
 interface UserRow {
   id: string;
@@ -35,22 +37,81 @@ interface RegistrationRow {
   tripTitle: string;
 }
 
+export interface AdminTripRow {
+  id: string;
+  slug: string;
+  title: string;
+  shortTitle: string;
+  destination: string;
+  state: string;
+  source: string;
+  category: string;
+  status: string;
+  difficulty: string;
+  tripDate: string;
+  returnDate: string;
+  departureTime: string;
+  returnTime: string;
+  basePrice: number;
+  maxSlots: number;
+  minSlots: number;
+  bookedSlots: number;
+  shortDescription: string;
+  description: string;
+  highlights: string[];
+  inclusions: string[];
+  exclusions: string[];
+  coverImage: string;
+  tag: string;
+  tagColor: string;
+  accentColor: string;
+  registrationOpen: boolean;
+}
+
 interface Props {
   stats: { totalUsers: number; totalBookings: number; pendingReviews: number; pendingRegistrations: number };
   users: UserRow[];
   pendingReviews: ReviewRow[];
   pendingRegistrations: RegistrationRow[];
+  trips: AdminTripRow[];
 }
 
-const tabs = ["Overview", "Users", "Review Approvals", "Registrations"];
+const tabs = ["Overview", "Users", "Review Approvals", "Registrations", "Trips"];
 
-export default function AdminClient({ stats, users, pendingReviews, pendingRegistrations }: Props) {
+export default function AdminClient({ stats, users, pendingReviews, pendingRegistrations, trips: initialTrips }: Props) {
   const [activeTab, setActiveTab] = useState(0);
   const [reviews, setReviews] = useState(pendingReviews);
   const [approving, setApproving] = useState<string | null>(null);
   const [registrations, setRegistrations] = useState(pendingRegistrations);
   const [reviewingReg, setReviewingReg] = useState<string | null>(null);
   const [zoomedScreenshot, setZoomedScreenshot] = useState<string | null>(null);
+  const [trips, setTrips] = useState(initialTrips);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingTrip, setEditingTrip] = useState<AdminTripRow | null>(null);
+  const [togglingTripId, setTogglingTripId] = useState<string | null>(null);
+
+  const toggleRegistration = async (trip: AdminTripRow) => {
+    setTogglingTripId(trip.id);
+    const nextValue = !trip.registrationOpen;
+    const res = await fetch(`/api/admin/trips/${trip.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ registrationOpen: nextValue }),
+    });
+    if (res.ok) {
+      setTrips((ts) => ts.map((t) => (t.id === trip.id ? { ...t, registrationOpen: nextValue } : t)));
+    }
+    setTogglingTripId(null);
+  };
+
+  const handleTripSaved = (saved: AdminTripRow) => {
+    setTrips((ts) => {
+      const exists = ts.some((t) => t.id === saved.id);
+      return exists ? ts.map((t) => (t.id === saved.id ? saved : t)) : [saved, ...ts];
+    });
+    setFormOpen(false);
+    setEditingTrip(null);
+  };
 
   const approve = async (id: string) => {
     setApproving(id);
@@ -333,7 +394,105 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
             ))}
           </div>
         )}
+
+        {/* Trips */}
+        {activeTab === 4 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-bold text-gray-900" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+                All Trips <span className="text-gray-400 font-normal text-sm ml-2">({trips.length})</span>
+              </h2>
+              <button
+                onClick={() => { setEditingTrip(null); setFormOpen(true); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                style={{ background: "#FF6016" }}
+              >
+                <Plus size={16} /> Add New Trip
+              </button>
+            </div>
+
+            {trips.length === 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                <p className="font-semibold text-gray-700">No trips yet.</p>
+                <p className="text-sm text-gray-400 mt-1">Add your first trip to get it live on the site.</p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {trips.map((t) => (
+                <div key={t.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="relative w-full sm:w-24 h-32 sm:h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
+                    {t.coverImage ? (
+                      <Image src={t.coverImage} alt={t.title} fill className="object-cover" sizes="96px" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">No image</div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="font-semibold text-gray-900 text-sm">{t.title}</span>
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                        style={{ background: t.source === "sundarone" ? "#FF7800" : "#01574A" }}
+                      >
+                        {t.source === "sundarone" ? "Sundarone" : "MysTrip"}
+                      </span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 capitalize">
+                        {t.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 flex items-center gap-1 flex-wrap">
+                      <MapPin size={11} /> {t.destination}
+                      <span className="mx-1">·</span>
+                      {new Date(t.tripDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      <span className="mx-1">·</span>
+                      ₹{t.basePrice.toLocaleString("en-IN")}
+                      <span className="mx-1">·</span>
+                      {t.bookedSlots}/{t.maxSlots} booked
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <span className="text-xs font-semibold text-gray-500">
+                        {t.registrationOpen ? "Open" : "Closed"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleRegistration(t)}
+                        disabled={togglingTripId === t.id}
+                        className="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
+                        style={{ background: t.registrationOpen ? "#10b981" : "#d1d5db" }}
+                      >
+                        <span
+                          className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
+                          style={{ transform: t.registrationOpen ? "translateX(20px)" : "translateX(4px)" }}
+                        />
+                      </button>
+                    </label>
+                    <button
+                      onClick={() => { setEditingTrip(t); setFormOpen(true); }}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-gray-200 hover:bg-gray-50 transition-all"
+                    >
+                      <Pencil size={13} /> Edit
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Trip create/edit form */}
+      {formOpen && (
+        <TripForm
+          trip={editingTrip}
+          onClose={() => { setFormOpen(false); setEditingTrip(null); }}
+          onSaved={handleTripSaved}
+        />
+      )}
 
       {/* Screenshot zoom overlay */}
       {zoomedScreenshot && (

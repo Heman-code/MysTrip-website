@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ALL_TRIPS, MYSTRIP_ONLY, getUpcomingTrips } from "@/lib/data/trips";
+import { getDbUpcomingTrips, toTripCardData } from "@/lib/db/trips";
 import TripsClient from "./TripsClient";
 
 export const metadata: Metadata = {
@@ -10,10 +10,14 @@ export const metadata: Metadata = {
     "Treks, day explorations, weekend escapes, and flagship multi-night journeys. MysTrip's full calendar for the 2026–27 academic year.",
 };
 
-export default function TripsPage() {
-  const trekCount = ALL_TRIPS.filter((t) => t.category === "trek").length;
-  const openCount = ALL_TRIPS.filter((t) => t.registrationOpen).length;
-  const firstTrip = getUpcomingTrips(1, "mystrip")[0] ?? MYSTRIP_ONLY[0];
+export default async function TripsPage() {
+  const dbTrips = await getDbUpcomingTrips();
+  const allTrips = dbTrips.map(toTripCardData);
+
+  const trekCount = allTrips.filter((t) => t.category === "trek").length;
+  const openCount = allTrips.filter((t) => t.registrationOpen).length;
+  const mysTripTrips = allTrips.filter((t) => t.source === "mystrip");
+  const firstTrip = mysTripTrips[0] ?? allTrips[0];
 
   return (
     <>
@@ -42,7 +46,7 @@ export default function TripsPage() {
 
           <div className="flex flex-wrap gap-4 sm:gap-6 mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-white/10">
             {[
-              { num: `${ALL_TRIPS.length}`, label: "Total trips" },
+              { num: `${allTrips.length}`, label: "Total trips" },
               { num: `${trekCount}`, label: "Treks" },
               { num: `${openCount}`, label: "Open now" },
               { num: "2", label: "National awards" },
@@ -57,25 +61,27 @@ export default function TripsPage() {
       </section>
 
       {/* Client: filter + trips */}
-      <TripsClient allTrips={ALL_TRIPS} />
+      <TripsClient allTrips={allTrips} />
 
       {/* Bottom CTA */}
-      <section className="py-12 sm:py-16 text-center" style={{ background: "#01574A" }}>
-        <div className="max-w-md mx-auto px-4">
-          <h2 className="text-xl sm:text-3xl font-bold text-white mb-3" style={{ fontFamily: "'Clash Display', sans-serif" }}>
-            Not sure where to start?
-          </h2>
-          <p className="text-white/60 mb-7 text-sm leading-relaxed">
-            First timers always start with {firstTrip.shortTitle} — zero commitment, maximum memories.
-          </p>
-          <Link
-            href={`/trips/${firstTrip.slug}`}
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-[#01574A] bg-white hover:bg-[#FFEFDD] transition-colors text-sm"
-          >
-            Start with {firstTrip.shortTitle} →
-          </Link>
-        </div>
-      </section>
+      {firstTrip && (
+        <section className="py-12 sm:py-16 text-center" style={{ background: "#01574A" }}>
+          <div className="max-w-md mx-auto px-4">
+            <h2 className="text-xl sm:text-3xl font-bold text-white mb-3" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+              Not sure where to start?
+            </h2>
+            <p className="text-white/60 mb-7 text-sm leading-relaxed">
+              First timers always start with {firstTrip.shortTitle} — zero commitment, maximum memories.
+            </p>
+            <Link
+              href={`/trips/${firstTrip.slug}`}
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-[#01574A] bg-white hover:bg-[#FFEFDD] transition-colors text-sm"
+            >
+              Start with {firstTrip.shortTitle} →
+            </Link>
+          </div>
+        </section>
+      )}
     </>
   );
 }

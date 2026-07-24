@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { auth } from "@/auth";
-import { getTripBySlug } from "@/lib/data/trips";
+import { getDbTripBySlug } from "@/lib/db/trips";
 import { generateUpiQrDataUrl, UPI_ID } from "@/lib/upi";
 import RegisterClient from "./RegisterClient";
 
@@ -11,19 +11,20 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const trip = getTripBySlug(slug);
+  const trip = await getDbTripBySlug(slug);
   return { title: trip ? `Register — ${trip.title} | MysTrip` : "Register | MysTrip" };
 }
 
 export default async function RegisterPage({ params }: Props) {
   const { slug } = await params;
-  const trip = getTripBySlug(slug);
-  if (!trip || !trip.inAppRegistration || !trip.registrationOpen) notFound();
+  const trip = await getDbTripBySlug(slug);
+  if (!trip || !trip.registrationOpen) notFound();
 
   const session = await auth();
   if (!session?.user) redirect(`/auth/login?callbackUrl=/trips/${slug}/register`);
 
-  const qrDataUrl = await generateUpiQrDataUrl(trip.basePrice, `${trip.title} ${trip.shortTitle}`);
+  const basePrice = Number(trip.basePrice);
+  const qrDataUrl = await generateUpiQrDataUrl(basePrice, `${trip.title} ${trip.shortTitle ?? ""}`);
 
   return (
     <RegisterClient
@@ -31,10 +32,10 @@ export default async function RegisterPage({ params }: Props) {
         slug: trip.slug,
         title: trip.title,
         destination: trip.destination,
-        basePrice: trip.basePrice,
-        coverImage: trip.coverImage,
-        startDate: trip.startDate,
-        tagColor: trip.tagColor,
+        basePrice,
+        coverImage: trip.coverImage ?? "",
+        startDate: trip.tripDate,
+        tagColor: trip.tagColor ?? "#FF6016",
       }}
       qrDataUrl={qrDataUrl}
       upiId={UPI_ID}

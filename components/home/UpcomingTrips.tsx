@@ -4,14 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { ALL_TRIPS, formatDateRange, type Trip } from "@/lib/data/trips";
+import { formatDateRange } from "@/lib/data/trips";
+import type { TripCardData } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
-
-// Show the 3 soonest upcoming trips on the homepage
-const today = new Date().toISOString().split("T")[0];
-const featuredTrips = ALL_TRIPS.filter((t) => t.startDate >= today)
-  .sort((a, b) => a.startDate.localeCompare(b.startDate))
-  .slice(0, 3);
 
 const diffColors: Record<string, { bg: string; text: string }> = {
   Easy:     { bg: "#dcfce7", text: "#166534" },
@@ -19,7 +14,7 @@ const diffColors: Record<string, { bg: string; text: string }> = {
   Hard:     { bg: "#fee2e2", text: "#991b1b" },
 };
 
-function TripCard({ trip, delay }: { trip: Trip; delay: number }) {
+function TripCard({ trip, delay }: { trip: TripCardData; delay: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -97,7 +92,7 @@ function TripCard({ trip, delay }: { trip: Trip; delay: number }) {
           <div className="flex items-center justify-between mt-3.5 sm:mt-5 pt-3.5 sm:pt-5 border-t border-gray-50">
             <div>
               <p className="text-[11px] sm:text-xs font-medium" style={{ color: "#FF6016" }}>
-                {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Price revealing soon"}
+                {trip.registrationOpen ? formatCurrency(trip.basePrice) : "Price revealing soon"}
               </p>
             </div>
             <span
@@ -113,7 +108,7 @@ function TripCard({ trip, delay }: { trip: Trip; delay: number }) {
   );
 }
 
-export default function UpcomingTrips() {
+export default function UpcomingTrips({ featuredTrips, totalTripsCount }: { featuredTrips: TripCardData[]; totalTripsCount: number }) {
   const headingRef = useRef<HTMLDivElement>(null);
   const [headingVisible, setHeadingVisible] = useState(false);
 
@@ -145,7 +140,7 @@ export default function UpcomingTrips() {
             </h2>
           </div>
           <Link href="/trips" className="hidden md:inline-flex items-center gap-2 text-sm font-bold hover:gap-3 transition-all" style={{ color: "#FF6016" }}>
-            View all {ALL_TRIPS.length} trips <ArrowRight size={16} />
+            View all {totalTripsCount} trips <ArrowRight size={16} />
           </Link>
         </div>
 
@@ -164,7 +159,7 @@ export default function UpcomingTrips() {
               🗓️
             </div>
             <p className="text-base sm:text-xl font-bold text-gray-800" style={{ fontFamily: "'Clash Display', sans-serif" }}>
-              {ALL_TRIPS.length - 3} More Adventures
+              {Math.max(totalTripsCount - 3, 0)} More Adventures
             </p>
             <p className="text-xs sm:text-sm text-gray-400 mt-1.5 sm:mt-2 max-w-[180px] leading-relaxed">
               Treks, weekend escapes, Rishikesh, Ranthambore & Jaisalmer.
@@ -181,7 +176,7 @@ export default function UpcomingTrips() {
 
         {/* Mobile-only "view all" link below the carousel */}
         <Link href="/trips" className="md:hidden mt-5 inline-flex items-center gap-2 text-sm font-bold" style={{ color: "#FF6016" }}>
-          View all {ALL_TRIPS.length} trips <ArrowRight size={16} />
+          View all {totalTripsCount} trips <ArrowRight size={16} />
         </Link>
       </div>
     </section>

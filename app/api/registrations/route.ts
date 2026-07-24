@@ -3,8 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { registrations, trips, users } from "@/lib/db/schema";
-import { getTripBySlug } from "@/lib/data/trips";
-import { getOrCreateDbTrip } from "@/lib/db/syncTrip";
+import { getDbTripBySlug } from "@/lib/db/trips";
 
 const MAX_SCREENSHOT_BASE64_LENGTH = 5_600_000; // ~4MB decoded
 
@@ -25,8 +24,8 @@ export async function POST(req: NextRequest) {
     paymentScreenshot,
   } = body ?? {};
 
-  const staticTrip = slug ? getTripBySlug(slug) : undefined;
-  if (!staticTrip || !staticTrip.inAppRegistration || !staticTrip.registrationOpen) {
+  const trip = slug ? await getDbTripBySlug(slug) : null;
+  if (!trip || !trip.registrationOpen) {
     return NextResponse.json({ error: "Registration is not open for this trip." }, { status: 400 });
   }
 
@@ -44,10 +43,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Screenshot is too large. Please upload an image under 4MB." }, { status: 400 });
   }
 
-  const dbTripId = await getOrCreateDbTrip(slug);
-  if (!dbTripId) {
-    return NextResponse.json({ error: "Trip not found." }, { status: 404 });
-  }
+  const dbTripId = trip.id;
 
   const [existing] = await db
     .select({ id: registrations.id, bookingStatus: registrations.bookingStatus })
@@ -69,7 +65,7 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       tripId: dbTripId,
       bookingStatus: "pending_payment",
-      amount: staticTrip.basePrice.toString(),
+      amount: trip.basePrice,
       whatsappNumber: whatsappNumber.trim(),
       guardianPhone: guardianPhone.trim(),
       collegeRegNumber: collegeRegNumber.trim(),

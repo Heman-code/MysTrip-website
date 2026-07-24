@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { users, reviews, registrations, trips } from "@/lib/db/schema";
 import { eq, count } from "drizzle-orm";
+import { getAllDbTripsForAdmin } from "@/lib/db/trips";
 import AdminClient from "./AdminClient";
 
 export default async function AdminPage() {
@@ -10,7 +11,7 @@ export default async function AdminPage() {
   const role = (session?.user as { role?: string } | undefined)?.role;
   if (!session || role !== "admin") redirect("/");
 
-  const [[{ total: totalUsers }], [{ total: totalBookings }], [{ total: pendingReviews }], [{ total: pendingRegistrations }], allUsers, rawReviews, rawRegistrations] =
+  const [[{ total: totalUsers }], [{ total: totalBookings }], [{ total: pendingReviews }], [{ total: pendingRegistrations }], allUsers, rawReviews, rawRegistrations, allTrips] =
     await Promise.all([
       db.select({ total: count() }).from(users),
       db.select({ total: count() }).from(registrations),
@@ -55,6 +56,7 @@ export default async function AdminPage() {
         .innerJoin(trips, eq(registrations.tripId, trips.id))
         .where(eq(registrations.bookingStatus, "pending_payment"))
         .orderBy(registrations.createdAt),
+      getAllDbTripsForAdmin(),
     ]);
 
   return (
@@ -78,6 +80,36 @@ export default async function AdminPage() {
         ...r,
         amount: Number(r.amount),
         createdAt: r.createdAt?.toISOString() ?? "",
+      }))}
+      trips={allTrips.map((t) => ({
+        id: t.id,
+        slug: t.slug,
+        title: t.title,
+        shortTitle: t.shortTitle ?? "",
+        destination: t.destination,
+        state: t.state ?? "",
+        source: t.source ?? "mystrip",
+        category: t.category ?? "day_exploration",
+        status: t.status ?? "open",
+        difficulty: t.difficulty ?? "Easy",
+        tripDate: t.tripDate,
+        returnDate: t.returnDate ?? "",
+        departureTime: t.departureTime ?? "",
+        returnTime: t.returnTime ?? "",
+        basePrice: Number(t.basePrice),
+        maxSlots: t.maxSlots,
+        minSlots: t.minSlots ?? 10,
+        bookedSlots: t.bookedSlots ?? 0,
+        shortDescription: t.shortDescription ?? "",
+        description: t.description ?? "",
+        highlights: (t.highlights as string[] | null) ?? [],
+        inclusions: (t.inclusions as string[] | null) ?? [],
+        exclusions: (t.exclusions as string[] | null) ?? [],
+        coverImage: t.coverImage ?? "",
+        tag: t.tag ?? "",
+        tagColor: t.tagColor ?? "#FF6016",
+        accentColor: t.accentColor ?? "#FF6016",
+        registrationOpen: !!t.registrationOpen,
       }))}
     />
   );

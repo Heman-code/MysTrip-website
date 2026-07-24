@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { SUNDARONE_ONLY, formatDateRange, daysUntil, nightCount, type Trip } from "@/lib/data/trips";
+import { formatDateRange, daysUntil, nightCount } from "@/lib/data/trips";
+import { getDbUpcomingTrips, toTripCardData, type TripCardData } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
 
 // Sundarone brand colours
@@ -21,13 +22,8 @@ export const metadata: Metadata = {
   },
 };
 
-const featured = SUNDARONE_ONLY
-  .filter((t) => t.startDate >= new Date().toISOString().split("T")[0])
-  .sort((a, b) => a.startDate.localeCompare(b.startDate))
-  .slice(0, 3);
-
 // ─── TRIP CARD ────────────────────────────────────────────────────────────────
-function TripCard({ trip }: { trip: Trip }) {
+function TripCard({ trip }: { trip: TripCardData }) {
   const nights = nightCount(trip.startDate, trip.endDate);
   const days = daysUntil(trip.startDate);
   return (
@@ -66,7 +62,7 @@ function TripCard({ trip }: { trip: Trip }) {
         <p className="text-xs text-gray-400">{formatDateRange(trip.startDate, trip.endDate)}</p>
         <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-50">
           <span className="text-xs font-medium" style={{ color: "#FF6016" }}>
-            {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Price revealing soon"}
+            {trip.registrationOpen ? formatCurrency(trip.basePrice) : "Price revealing soon"}
           </span>
           <span className="text-xs font-semibold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#FF6016" }}>
             Know more <ArrowRight size={12} />
@@ -78,7 +74,7 @@ function TripCard({ trip }: { trip: Trip }) {
 }
 
 // ─── TRIP PILL (full calendar) ────────────────────────────────────────────────
-function TripPill({ trip }: { trip: Trip }) {
+function TripPill({ trip }: { trip: TripCardData }) {
   const nights = nightCount(trip.startDate, trip.endDate);
   return (
     <Link
@@ -100,14 +96,18 @@ function TripPill({ trip }: { trip: Trip }) {
         <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{trip.category.replace(/_/g, " ")}</p>
       </div>
       <span className="text-xs font-bold flex-shrink-0" style={{ color: "#FF6016" }}>
-        {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Soon"}
+        {trip.registrationOpen ? formatCurrency(trip.basePrice) : "Soon"}
       </span>
     </Link>
   );
 }
 
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
-export default function SundaronePage() {
+export default async function SundaronePage() {
+  const dbTrips = await getDbUpcomingTrips("sundarone");
+  const sundaroneTrips = dbTrips.map(toTripCardData);
+  const featured = sundaroneTrips.slice(0, 3);
+
   return (
     <>
       {/* ─── HERO ────────────────────────────────────────────────────────── */}
@@ -189,7 +189,7 @@ export default function SundaronePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
             <div className="flex flex-nowrap overflow-x-auto gap-5 sm:gap-8 scrollbar-none">
               {[
-                { num: `${SUNDARONE_ONLY.length}`, label: "trips" },
+                { num: `${sundaroneTrips.length}`, label: "trips" },
                 { num: "Exam-safe", label: "dates" },
                 { num: "Price", label: "revealing soon" },
                 { num: "Residents", label: "only" },
@@ -275,7 +275,7 @@ export default function SundaronePage() {
               </div>
               <Link href="#all-trips" className="text-sm font-bold flex items-center gap-1.5 hover:gap-2.5 transition-all"
                 style={{ color: "#0b3d59" }}>
-                All {SUNDARONE_ONLY.length} trips <ArrowRight size={14} />
+                All {sundaroneTrips.length} trips <ArrowRight size={14} />
               </Link>
             </div>
             <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-3 scrollbar-none md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
@@ -356,12 +356,12 @@ export default function SundaronePage() {
               Your semester calendar.
             </h2>
             <p className="text-xs sm:text-sm text-gray-400 mt-2">
-              {SUNDARONE_ONLY.length} trips · Every date planned around your academic calendar
+              {sundaroneTrips.length} trips · Every date planned around your academic calendar
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {SUNDARONE_ONLY.map((trip) => <TripPill key={trip.id} trip={trip} />)}
+            {sundaroneTrips.map((trip) => <TripPill key={trip.id} trip={trip} />)}
           </div>
         </div>
       </section>

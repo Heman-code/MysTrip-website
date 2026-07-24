@@ -118,6 +118,7 @@ export const trips = pgTable("trips", {
   // Metadata
   tag:               varchar("tag", { length: 50 }),
   tagColor:          varchar("tag_color", { length: 20 }),
+  accentColor:       varchar("accent_color", { length: 20 }),
 
   createdAt:         timestamp("created_at").defaultNow(),
   updatedAt:         timestamp("updated_at").defaultNow(),

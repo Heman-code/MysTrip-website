@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTripBySlug } from "@/lib/data/trips";
+import { getDbTripBySlug } from "@/lib/db/trips";
 
 // Map slug → internal storage URL (never exposed to client)
 const ITINERARY_URLS: Record<string, string> = {
@@ -12,7 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const trip = getTripBySlug(slug);
+  const trip = await getDbTripBySlug(slug);
 
   if (!trip) {
     return new NextResponse("Trip not found", { status: 404 });

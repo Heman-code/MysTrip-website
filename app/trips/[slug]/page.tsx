@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ALL_TRIPS, getTripBySlug, formatDateRange, nightCount, daysUntil } from "@/lib/data/trips";
+import { formatDateRange, nightCount, daysUntil, type ItineraryTrack } from "@/lib/data/trips";
+import { getDbTripBySlug, getAllDbTripsForAdmin } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
 import TripDetailClient from "./TripDetailClient";
 
@@ -11,38 +12,48 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  return ALL_TRIPS.map((t) => ({ slug: t.slug }));
+  const trips = await getAllDbTripsForAdmin();
+  return trips.map((t) => ({ slug: t.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const trip = getTripBySlug(slug);
+  const trip = await getDbTripBySlug(slug);
   if (!trip) return { title: "Trip Not Found | MysTrip" };
   return {
     title: `${trip.title} | MysTrip`,
-    description: trip.shortDescription,
+    description: trip.shortDescription ?? undefined,
     openGraph: {
-      images: [{ url: trip.coverImage }],
+      images: trip.coverImage ? [{ url: trip.coverImage }] : undefined,
     },
   };
 }
 
-const diffColors = {
+const diffColors: Record<string, { bg: string; text: string }> = {
   Easy:     { bg: "#dcfce7", text: "#166534" },
   Moderate: { bg: "#fef9c3", text: "#854d0e" },
   Hard:     { bg: "#fee2e2", text: "#991b1b" },
 };
 
+const FALLBACK_COVER = "/trips/hero-udaipur-cliff-group-2.jpg";
+
 export default async function TripDetailPage({ params }: Props) {
   const { slug } = await params;
-  const trip = getTripBySlug(slug);
+  const trip = await getDbTripBySlug(slug);
   if (!trip) notFound();
 
-  const dc = diffColors[trip.difficulty];
-  const nights = nightCount(trip.startDate, trip.endDate);
-  const days = daysUntil(trip.startDate);
-  const slotsLeft = trip.maxSlots - trip.bookedSlots;
-  const pct = Math.round((trip.bookedSlots / trip.maxSlots) * 100);
+  const basePrice = Number(trip.basePrice);
+  const coverImage = trip.coverImage || FALLBACK_COVER;
+  const tagColor = trip.tagColor || "#FF6016";
+  const highlights = (trip.highlights as string[] | null) ?? [];
+  const inclusions = (trip.inclusions as string[] | null) ?? [];
+  const exclusions = (trip.exclusions as string[] | null) ?? [];
+  const tracks = (trip.tracks as ItineraryTrack[] | null) ?? [];
+  const dc = diffColors[trip.difficulty ?? "Easy"] ?? diffColors.Easy;
+  const nights = nightCount(trip.tripDate, trip.returnDate ?? trip.tripDate);
+  const days = daysUntil(trip.tripDate);
+  const slotsLeft = trip.maxSlots - (trip.bookedSlots ?? 0);
+  const pct = Math.round(((trip.bookedSlots ?? 0) / trip.maxSlots) * 100);
   const isMultiDay = nights > 0;
 
   return (
@@ -50,7 +61,7 @@ export default async function TripDetailPage({ params }: Props) {
       {/* ── Hero ── */}
       <section className="relative h-[56vh] min-h-[380px] sm:h-[70vh] sm:min-h-[500px] flex flex-col justify-end overflow-hidden">
         <Image
-          src={trip.coverImage}
+          src={coverImage}
           alt={trip.title}
           fill
           className="object-cover object-center"
@@ -75,7 +86,7 @@ export default async function TripDetailPage({ params }: Props) {
         {/* Hero content */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-10 w-full">
           <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-            <span className="text-[10px] sm:text-xs font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-white" style={{ background: trip.tagColor }}>
+            <span className="text-[10px] sm:text-xs font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-white" style={{ background: tagColor }}>
               {trip.tag}
             </span>
             <span className="text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full" style={{ background: dc.bg, color: dc.text }}>
@@ -111,7 +122,7 @@ export default async function TripDetailPage({ params }: Props) {
               {/* Quick stats strip */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-10">
                 {[
-                  { label: "Date", value: formatDateRange(trip.startDate, trip.endDate) },
+                  { label: "Date", value: formatDateRange(trip.tripDate, trip.returnDate ?? trip.tripDate) },
                   { label: "Duration", value: isMultiDay ? `${nights} Night${nights > 1 ? "s" : ""}` : "Day Trip" },
                   { label: "Departure", value: trip.departureTime ?? "TBA" },
                   { label: "Returns", value: trip.returnTime ?? "TBA" },
@@ -128,27 +139,29 @@ export default async function TripDetailPage({ params }: Props) {
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4" style={{ fontFamily: "'Clash Display', sans-serif" }}>
                   About this trip
                 </h2>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{trip.longDescription}</p>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{trip.description}</p>
               </div>
 
               {/* Highlights */}
+              {highlights.length > 0 && (
               <div className="bg-white rounded-2xl p-5 sm:p-8 border border-gray-100 mb-5 sm:mb-6">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-5" style={{ fontFamily: "'Clash Display', sans-serif" }}>
                   Highlights
                 </h2>
                 <ul className="space-y-3">
-                  {trip.highlights.map((h) => (
+                  {highlights.map((h) => (
                     <li key={h} className="flex items-start gap-3 text-sm text-gray-700">
-                      <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: trip.tagColor }}>✓</span>
+                      <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: tagColor }}>✓</span>
                       {h}
                     </li>
                   ))}
                 </ul>
               </div>
+              )}
 
               {/* Track selector — client component */}
-              {trip.tracks && trip.tracks.length > 0 && (
-                <TripDetailClient tracks={trip.tracks} accentColor={trip.tagColor} />
+              {tracks.length > 0 && (
+                <TripDetailClient tracks={tracks} accentColor={tagColor} />
               )}
 
               {/* Included / Excluded */}
@@ -156,7 +169,7 @@ export default async function TripDetailPage({ params }: Props) {
                 <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100">
                   <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-3 sm:mb-4">What&apos;s included</h3>
                   <ul className="space-y-2 sm:space-y-2.5">
-                    {trip.included.map((item) => (
+                    {inclusions.map((item) => (
                       <li key={item} className="flex items-start gap-2 text-xs sm:text-sm text-gray-600">
                         <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span> {item}
                       </li>
@@ -166,7 +179,7 @@ export default async function TripDetailPage({ params }: Props) {
                 <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100">
                   <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-3 sm:mb-4">Not included</h3>
                   <ul className="space-y-2 sm:space-y-2.5">
-                    {trip.excluded.map((item) => (
+                    {exclusions.map((item) => (
                       <li key={item} className="flex items-start gap-2 text-xs sm:text-sm text-gray-600">
                         <span className="text-red-400 mt-0.5 flex-shrink-0">✗</span> {item}
                       </li>
@@ -207,10 +220,10 @@ export default async function TripDetailPage({ params }: Props) {
                   <div className="p-6 border-b border-gray-50">
                     <p className="text-xs text-gray-400 mb-1">Investment</p>
                     <p className="text-xl font-bold" style={{ fontFamily: "'Clash Display', sans-serif", color: "#FF6016" }}>
-                      {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Price revealing soon"}
+                      {trip.registrationOpen ? formatCurrency(basePrice) : "Price revealing soon"}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
-                      {trip.inAppRegistration ? "Pay via UPI · confirmed after verification" : "Drop us a message to be first to know"}
+                      {trip.registrationOpen ? "Pay via UPI · confirmed after verification" : "Drop us a message to be first to know"}
                     </p>
                   </div>
 
@@ -223,7 +236,7 @@ export default async function TripDetailPage({ params }: Props) {
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full"
-                        style={{ width: `${pct}%`, background: pct > 75 ? "#ef4444" : trip.tagColor }}
+                        style={{ width: `${pct}%`, background: pct > 75 ? "#ef4444" : tagColor }}
                       />
                     </div>
                   </div>
@@ -232,7 +245,7 @@ export default async function TripDetailPage({ params }: Props) {
                   <div className="px-6 pb-5 space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Date</span>
-                      <span className="font-medium text-gray-900">{formatDateRange(trip.startDate, trip.endDate)}</span>
+                      <span className="font-medium text-gray-900">{formatDateRange(trip.tripDate, trip.returnDate ?? trip.tripDate)}</span>
                     </div>
                     {trip.departureTime && (
                       <div className="flex justify-between">
@@ -250,11 +263,11 @@ export default async function TripDetailPage({ params }: Props) {
 
                   {/* CTA */}
                   <div className="px-6 pb-6">
-                    {trip.inAppRegistration ? (
+                    {trip.registrationOpen ? (
                       <Link
                         href={`/trips/${trip.slug}/register`}
                         className="block w-full text-center py-4 rounded-2xl font-bold text-white text-base transition-all hover:opacity-90 active:scale-95"
-                        style={{ background: trip.tagColor }}
+                        style={{ background: tagColor }}
                       >
                         Register Now →
                       </Link>
@@ -264,7 +277,7 @@ export default async function TripDetailPage({ params }: Props) {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full text-center py-4 rounded-2xl font-bold text-white text-base transition-all hover:opacity-90 active:scale-95"
-                        style={{ background: trip.tagColor }}
+                        style={{ background: tagColor }}
                       >
                         Apply for This Trip →
                       </a>
@@ -311,14 +324,14 @@ export default async function TripDetailPage({ params }: Props) {
         <div className="flex-1">
           <p className="text-xs text-gray-400">Investment</p>
           <p className="text-sm font-bold" style={{ color: "#FF6016" }}>
-            {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Price revealing soon"}
+            {trip.registrationOpen ? formatCurrency(basePrice) : "Price revealing soon"}
           </p>
         </div>
-        {trip.inAppRegistration ? (
+        {trip.registrationOpen ? (
           <Link
             href={`/trips/${trip.slug}/register`}
             className="px-6 py-3 rounded-2xl font-bold text-white text-sm flex-shrink-0"
-            style={{ background: trip.tagColor }}
+            style={{ background: tagColor }}
           >
             Register Now →
           </Link>
@@ -328,7 +341,7 @@ export default async function TripDetailPage({ params }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             className="px-6 py-3 rounded-2xl font-bold text-white text-sm flex-shrink-0"
-            style={{ background: trip.tagColor }}
+            style={{ background: tagColor }}
           >
             Apply Now →
           </a>

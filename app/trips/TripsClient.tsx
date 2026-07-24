@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { formatDateRange, daysUntil, nightCount, type Trip } from "@/lib/data/trips";
+import { formatDateRange, daysUntil, nightCount } from "@/lib/data/trips";
+import type { TripCardData } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
 
 type FilterKey = "all" | "trek" | "day" | "weekend" | "multi";
@@ -17,7 +18,7 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "multi",   label: "Multi-day" },
 ];
 
-function matchFilter(trip: Trip, filter: FilterKey) {
+function matchFilter(trip: TripCardData, filter: FilterKey) {
   if (filter === "all") return true;
   if (filter === "trek") return trip.category === "trek";
   if (filter === "day") return trip.category === "day_exploration" || trip.category === "parents_event";
@@ -26,7 +27,7 @@ function matchFilter(trip: Trip, filter: FilterKey) {
   return true;
 }
 
-function TripCard({ trip }: { trip: Trip }) {
+function TripCard({ trip }: { trip: TripCardData }) {
   const days = daysUntil(trip.startDate);
   const nights = nightCount(trip.startDate, trip.endDate);
   const slotsLeft = trip.maxSlots - trip.bookedSlots;
@@ -101,7 +102,7 @@ function TripCard({ trip }: { trip: Trip }) {
         {/* CTA row */}
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
           <p className="text-[10px] font-medium" style={{ color: "#FF6016" }}>
-            {trip.inAppRegistration ? formatCurrency(trip.basePrice) : "Price revealing soon"}
+            {trip.registrationOpen ? formatCurrency(trip.basePrice) : "Price revealing soon"}
           </p>
           <span className="flex items-center gap-1 text-xs font-bold transition-all group-hover:gap-2" style={{ color: trip.tagColor }}>
             Know more <ArrowRight size={11} />
@@ -112,7 +113,7 @@ function TripCard({ trip }: { trip: Trip }) {
   );
 }
 
-export default function TripsClient({ allTrips }: { allTrips: Trip[] }) {
+export default function TripsClient({ allTrips }: { allTrips: TripCardData[] }) {
   const [active, setActive] = useState<FilterKey>("all");
 
   const sorted = [...allTrips]
