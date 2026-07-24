@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { upload } from "@vercel/blob/client";
-import { X, Upload, Loader2 } from "lucide-react";
+import { X, ImageIcon, Check } from "lucide-react";
 import type { AdminTripRow } from "./AdminClient";
+import tripPhotos from "@/lib/data/tripPhotos.json";
 
 interface Props {
   trip: AdminTripRow | null;
@@ -67,33 +67,12 @@ export default function TripForm({ trip, onClose, onSaved }: Props) {
     accentColor: trip?.accentColor ?? "#FF6016",
     registrationOpen: trip?.registrationOpen ?? false,
   });
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
-
-  const handleUpload = async (file: File) => {
-    setUploading(true);
-    setError("");
-    const pathname = `trips/${crypto.randomUUID()}-${file.name}`;
-    try {
-      let blob;
-      try {
-        blob = await upload(pathname, file, { access: "public", handleUploadUrl: "/api/admin/upload" });
-      } catch {
-        // one silent retry — this class of failure is usually a transient network blip
-        await new Promise((r) => setTimeout(r, 800));
-        blob = await upload(pathname, file, { access: "public", handleUploadUrl: "/api/admin/upload" });
-      }
-      set("coverImage", blob.url);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed. Please try again.");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,18 +141,58 @@ export default function TripForm({ trip, onClose, onSaved }: Props) {
                   <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">No image</div>
                 )}
               </div>
-              <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 hover:bg-gray-50 cursor-pointer transition-all">
-                {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
-                {uploading ? "Uploading..." : "Upload Photo"}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/avif"
-                  className="hidden"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }}
-                />
-              </label>
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 hover:bg-gray-50 cursor-pointer transition-all"
+              >
+                <ImageIcon size={15} />
+                Choose Photo
+              </button>
             </div>
+            <p className="text-xs text-gray-400 mt-2">
+              Picks from photos already in the repo&apos;s <code>public/trips/</code> folder. To add a new one, drop the file there and push — it shows up here after the next deploy.
+            </p>
           </div>
+
+          {/* Photo picker overlay */}
+          {pickerOpen && (
+            <div
+              className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-8"
+              style={{ background: "rgba(0,0,0,0.6)" }}
+              onClick={() => setPickerOpen(false)}
+            >
+              <div
+                className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+                  <h3 className="font-bold text-gray-900">Choose a Cover Photo</h3>
+                  <button onClick={() => setPickerOpen(false)} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="p-4 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                  {(tripPhotos as string[]).map((src) => (
+                    <button
+                      key={src}
+                      type="button"
+                      onClick={() => { set("coverImage", src); setPickerOpen(false); }}
+                      className="relative aspect-video rounded-lg overflow-hidden border-2 transition-all hover:opacity-90"
+                      style={{ borderColor: form.coverImage === src ? "#FF6016" : "transparent" }}
+                    >
+                      <Image src={src} alt="" fill className="object-cover" sizes="150px" />
+                      {form.coverImage === src && (
+                        <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(255,96,22,0.35)" }}>
+                          <Check size={20} className="text-white" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Core fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -327,7 +346,7 @@ export default function TripForm({ trip, onClose, onSaved }: Props) {
             </button>
             <button
               type="submit"
-              disabled={saving || uploading}
+              disabled={saving}
               className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
               style={{ background: "#FF6016" }}
             >
