@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { upload } from "@vercel/blob/client";
 import { X, Upload, Loader2 } from "lucide-react";
 import type { AdminTripRow } from "./AdminClient";
 
@@ -77,17 +78,13 @@ export default function TripForm({ trip, onClose, onSaved }: Props) {
     setUploading(true);
     setError("");
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Upload failed.");
-        return;
-      }
-      set("coverImage", data.url);
-    } catch {
-      setError("Upload failed. Please try again.");
+      const blob = await upload(`trips/${crypto.randomUUID()}-${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/upload",
+      });
+      set("coverImage", blob.url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed. Please try again.");
     } finally {
       setUploading(false);
     }
