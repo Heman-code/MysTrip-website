@@ -3,7 +3,20 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { auth } from "@/auth";
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as HandleUploadBody;
+  let body: HandleUploadBody;
+  try {
+    body = (await req.json()) as HandleUploadBody;
+  } catch {
+    console.error("admin/upload: failed to parse request body", {
+      contentType: req.headers.get("content-type"),
+      contentLength: req.headers.get("content-length"),
+      userAgent: req.headers.get("user-agent"),
+    });
+    return NextResponse.json(
+      { error: "The upload request arrived incomplete. Please try again." },
+      { status: 400 }
+    );
+  }
 
   try {
     const jsonResponse = await handleUpload({

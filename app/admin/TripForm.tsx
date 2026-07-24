@@ -77,11 +77,16 @@ export default function TripForm({ trip, onClose, onSaved }: Props) {
   const handleUpload = async (file: File) => {
     setUploading(true);
     setError("");
+    const pathname = `trips/${crypto.randomUUID()}-${file.name}`;
     try {
-      const blob = await upload(`trips/${crypto.randomUUID()}-${file.name}`, file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/upload",
-      });
+      let blob;
+      try {
+        blob = await upload(pathname, file, { access: "public", handleUploadUrl: "/api/admin/upload" });
+      } catch {
+        // one silent retry — this class of failure is usually a transient network blip
+        await new Promise((r) => setTimeout(r, 800));
+        blob = await upload(pathname, file, { access: "public", handleUploadUrl: "/api/admin/upload" });
+      }
       set("coverImage", blob.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed. Please try again.");
