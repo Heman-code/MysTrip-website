@@ -73,16 +73,19 @@ interface Props {
   users: UserRow[];
   pendingReviews: ReviewRow[];
   pendingRegistrations: RegistrationRow[];
+  confirmedRegistrations: RegistrationRow[];
   trips: AdminTripRow[];
 }
 
 const tabs = ["Overview", "Users", "Review Approvals", "Registrations", "Trips"];
 
-export default function AdminClient({ stats, users, pendingReviews, pendingRegistrations, trips: initialTrips }: Props) {
+export default function AdminClient({ stats, users, pendingReviews, pendingRegistrations, confirmedRegistrations, trips: initialTrips }: Props) {
   const [activeTab, setActiveTab] = useState(0);
   const [reviews, setReviews] = useState(pendingReviews);
   const [approving, setApproving] = useState<string | null>(null);
   const [registrations, setRegistrations] = useState(pendingRegistrations);
+  const [confirmedRegs, setConfirmedRegs] = useState(confirmedRegistrations);
+  const [regView, setRegView] = useState<"pending" | "confirmed">("pending");
   const [reviewingReg, setReviewingReg] = useState<string | null>(null);
   const [zoomedScreenshot, setZoomedScreenshot] = useState<string | null>(null);
   const [trips, setTrips] = useState(initialTrips);
@@ -128,7 +131,11 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
       body: JSON.stringify({ action }),
     });
     if (res.ok) {
-      setRegistrations((r) => r.filter((rg) => rg.id !== id));
+      setRegistrations((r) => {
+        const reg = r.find((rg) => rg.id === id);
+        if (action === "confirm" && reg) setConfirmedRegs((c) => [reg, ...c]);
+        return r.filter((rg) => rg.id !== id);
+      });
     }
     setReviewingReg(null);
   };
@@ -320,80 +327,166 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
         {/* Registrations */}
         {activeTab === 3 && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
               <h2 className="font-bold text-gray-900" style={{ fontFamily: "'Clash Display', sans-serif" }}>
-                Pending Registrations <span className="text-gray-400 font-normal text-sm ml-2">({registrations.length})</span>
+                Registrations
               </h2>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setRegView("pending")}
+                  className="px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200"
+                  style={
+                    regView === "pending"
+                      ? { background: "#FF6016", color: "#fff" }
+                      : { background: "#f1f5f9", color: "#64748b" }
+                  }
+                >
+                  Pending ({registrations.length})
+                </button>
+                <button
+                  onClick={() => setRegView("confirmed")}
+                  className="px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200"
+                  style={
+                    regView === "confirmed"
+                      ? { background: "#FF6016", color: "#fff" }
+                      : { background: "#f1f5f9", color: "#64748b" }
+                  }
+                >
+                  Confirmed ({confirmedRegs.length})
+                </button>
+              </div>
             </div>
 
-            {registrations.length === 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-                <CheckCircle size={36} className="mx-auto mb-3 text-emerald-400" />
-                <p className="font-semibold text-gray-700">All caught up!</p>
-                <p className="text-sm text-gray-400 mt-1">No registrations waiting for payment verification.</p>
-              </div>
-            )}
+            {regView === "pending" && (
+              <>
+                {registrations.length === 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                    <CheckCircle size={36} className="mx-auto mb-3 text-emerald-400" />
+                    <p className="font-semibold text-gray-700">All caught up!</p>
+                    <p className="text-sm text-gray-400 mt-1">No registrations waiting for payment verification.</p>
+                  </div>
+                )}
 
-            {registrations.map((rg) => (
-              <div key={rg.id} className="bg-white rounded-2xl border border-gray-100 p-6">
-                <div className="flex flex-col sm:flex-row items-start gap-5">
-                  {rg.paymentScreenshot && (
-                    <button
-                      onClick={() => setZoomedScreenshot(rg.paymentScreenshot)}
-                      className="relative w-full sm:w-32 h-40 sm:h-32 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={rg.paymentScreenshot} alt="Payment screenshot" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors" />
-                    </button>
-                  )}
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <span className="font-semibold text-gray-900">{rg.userName}</span>
-                      <span className="text-xs text-gray-400">·</span>
-                      <span className="text-sm text-gray-500">{rg.userEmail}</span>
-                    </div>
-                    <p className="text-sm font-medium text-gray-700 mb-3">{rg.tripTitle}</p>
-
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-gray-500 mb-3">
-                      <p><span className="text-gray-400">Amount:</span> ₹{rg.amount.toLocaleString("en-IN")}</p>
-                      <p><span className="text-gray-400">WhatsApp:</span> {rg.whatsappNumber || "—"}</p>
-                      <p><span className="text-gray-400">Guardian:</span> {rg.guardianPhone || "—"}</p>
-                      <p><span className="text-gray-400">College Reg No:</span> {rg.collegeRegNumber || "—"}</p>
-                      {rg.discountAmount > 0 && (
-                        <p><span className="text-gray-400">Coupon discount:</span> <span className="text-emerald-600 font-semibold">− ₹{rg.discountAmount.toLocaleString("en-IN")}</span></p>
+                {registrations.map((rg) => (
+                  <div key={rg.id} className="bg-white rounded-2xl border border-gray-100 p-6">
+                    <div className="flex flex-col sm:flex-row items-start gap-5">
+                      {rg.paymentScreenshot && (
+                        <button
+                          onClick={() => setZoomedScreenshot(rg.paymentScreenshot)}
+                          className="relative w-full sm:w-32 h-40 sm:h-32 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={rg.paymentScreenshot} alt="Payment screenshot" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors" />
+                        </button>
                       )}
-                    </div>
 
-                    <p className="text-xs text-gray-400 mb-3">
-                      Submitted {new Date(rg.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                    </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                          <span className="font-semibold text-gray-900">{rg.userName}</span>
+                          <span className="text-xs text-gray-400">·</span>
+                          <span className="text-sm text-gray-500">{rg.userEmail}</span>
+                        </div>
+                        <p className="text-sm font-medium text-gray-700 mb-3">{rg.tripTitle}</p>
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => reviewRegistration(rg.id, "confirm")}
-                        disabled={reviewingReg === rg.id}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                        style={{ background: "#10b981" }}
-                      >
-                        <CheckCircle size={15} />
-                        {reviewingReg === rg.id ? "Working…" : "Confirm"}
-                      </button>
-                      <button
-                        onClick={() => reviewRegistration(rg.id, "reject")}
-                        disabled={reviewingReg === rg.id}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                        style={{ background: "#ef4444" }}
-                      >
-                        <XCircle size={15} />
-                        Reject
-                      </button>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-gray-500 mb-3">
+                          <p><span className="text-gray-400">Amount:</span> ₹{rg.amount.toLocaleString("en-IN")}</p>
+                          <p><span className="text-gray-400">WhatsApp:</span> {rg.whatsappNumber || "—"}</p>
+                          <p><span className="text-gray-400">Guardian:</span> {rg.guardianPhone || "—"}</p>
+                          <p><span className="text-gray-400">College Reg No:</span> {rg.collegeRegNumber || "—"}</p>
+                          {rg.discountAmount > 0 && (
+                            <p><span className="text-gray-400">Coupon discount:</span> <span className="text-emerald-600 font-semibold">− ₹{rg.discountAmount.toLocaleString("en-IN")}</span></p>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-gray-400 mb-3">
+                          Submitted {new Date(rg.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => reviewRegistration(rg.id, "confirm")}
+                            disabled={reviewingReg === rg.id}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                            style={{ background: "#10b981" }}
+                          >
+                            <CheckCircle size={15} />
+                            {reviewingReg === rg.id ? "Working…" : "Confirm"}
+                          </button>
+                          <button
+                            onClick={() => reviewRegistration(rg.id, "reject")}
+                            disabled={reviewingReg === rg.id}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                            style={{ background: "#ef4444" }}
+                          >
+                            <XCircle size={15} />
+                            Reject
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                ))}
+              </>
+            )}
+
+            {regView === "confirmed" && (
+              <>
+                {confirmedRegs.length === 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                    <Receipt size={36} className="mx-auto mb-3 text-gray-300" />
+                    <p className="font-semibold text-gray-700">No confirmed registrations yet.</p>
+                    <p className="text-sm text-gray-400 mt-1">Confirmed bookings will show up here.</p>
+                  </div>
+                )}
+
+                {confirmedRegs.map((rg) => (
+                  <div key={rg.id} className="bg-white rounded-2xl border border-gray-100 p-6">
+                    <div className="flex flex-col sm:flex-row items-start gap-5">
+                      {rg.paymentScreenshot && (
+                        <button
+                          onClick={() => setZoomedScreenshot(rg.paymentScreenshot)}
+                          className="relative w-full sm:w-32 h-40 sm:h-32 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={rg.paymentScreenshot} alt="Payment screenshot" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors" />
+                        </button>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                          <span className="font-semibold text-gray-900">{rg.userName}</span>
+                          <span className="text-xs text-gray-400">·</span>
+                          <span className="text-sm text-gray-500">{rg.userEmail}</span>
+                          <span
+                            className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                            style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
+                          >
+                            <CheckCircle size={11} /> Confirmed
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium text-gray-700 mb-3">{rg.tripTitle}</p>
+
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-gray-500 mb-3">
+                          <p><span className="text-gray-400">Amount:</span> ₹{rg.amount.toLocaleString("en-IN")}</p>
+                          <p><span className="text-gray-400">WhatsApp:</span> {rg.whatsappNumber || "—"}</p>
+                          <p><span className="text-gray-400">Guardian:</span> {rg.guardianPhone || "—"}</p>
+                          <p><span className="text-gray-400">College Reg No:</span> {rg.collegeRegNumber || "—"}</p>
+                          {rg.discountAmount > 0 && (
+                            <p><span className="text-gray-400">Coupon discount:</span> <span className="text-emerald-600 font-semibold">− ₹{rg.discountAmount.toLocaleString("en-IN")}</span></p>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-gray-400">
+                          Submitted {new Date(rg.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         )}
 
@@ -421,8 +514,13 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
             )}
 
             <div className="space-y-3">
-              {trips.map((t) => (
-                <div key={t.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              {[...trips].sort((a, b) => Number(a.status === "executed") - Number(b.status === "executed")).map((t) => (
+                <div
+                  key={t.id}
+                  className={`rounded-2xl border p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 transition-all ${
+                    t.status === "executed" ? "bg-gray-50 border-gray-100 grayscale opacity-60" : "bg-white border-gray-100"
+                  }`}
+                >
                   <div className="relative w-full sm:w-24 h-32 sm:h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
                     {t.coverImage ? (
                       <Image src={t.coverImage} alt={t.title} fill className="object-cover" sizes="96px" />

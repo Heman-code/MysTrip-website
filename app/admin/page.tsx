@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { users, reviews, registrations, trips } from "@/lib/db/schema";
-import { eq, count } from "drizzle-orm";
+import { eq, count, desc } from "drizzle-orm";
 import { getAllDbTripsForAdmin } from "@/lib/db/trips";
 import AdminClient from "./AdminClient";
 
@@ -16,7 +16,7 @@ export default async function AdminPage() {
   const role = (session?.user as { role?: string } | undefined)?.role;
   if (!session || role !== "admin") redirect("/");
 
-  const [[{ total: totalUsers }], [{ total: totalBookings }], [{ total: pendingReviews }], [{ total: pendingRegistrations }], allUsers, rawReviews, rawRegistrations, allTrips] =
+  const [[{ total: totalUsers }], [{ total: totalBookings }], [{ total: pendingReviews }], [{ total: pendingRegistrations }], allUsers, rawReviews, rawRegistrations, rawConfirmedRegistrations, allTrips] =
     await Promise.all([
       db.select({ total: count() }).from(users),
       db.select({ total: count() }).from(registrations),
@@ -61,6 +61,24 @@ export default async function AdminPage() {
         .innerJoin(trips, eq(registrations.tripId, trips.id))
         .where(eq(registrations.bookingStatus, "pending_payment"))
         .orderBy(registrations.createdAt),
+      db.select({
+        id: registrations.id,
+        amount: registrations.amount,
+        discountAmount: registrations.discountAmount,
+        whatsappNumber: registrations.whatsappNumber,
+        guardianPhone: registrations.guardianPhone,
+        collegeRegNumber: registrations.collegeRegNumber,
+        paymentScreenshot: registrations.paymentScreenshot,
+        createdAt: registrations.createdAt,
+        userName: users.fullName,
+        userEmail: users.email,
+        tripTitle: trips.title,
+      })
+        .from(registrations)
+        .innerJoin(users, eq(registrations.userId, users.id))
+        .innerJoin(trips, eq(registrations.tripId, trips.id))
+        .where(eq(registrations.bookingStatus, "confirmed"))
+        .orderBy(desc(registrations.createdAt)),
       getAllDbTripsForAdmin(),
     ]);
 
@@ -82,6 +100,12 @@ export default async function AdminPage() {
         createdAt: r.createdAt?.toISOString() ?? "",
       }))}
       pendingRegistrations={rawRegistrations.map((r) => ({
+        ...r,
+        amount: Number(r.amount),
+        discountAmount: Number(r.discountAmount ?? 0),
+        createdAt: r.createdAt?.toISOString() ?? "",
+      }))}
+      confirmedRegistrations={rawConfirmedRegistrations.map((r) => ({
         ...r,
         amount: Number(r.amount),
         discountAmount: Number(r.discountAmount ?? 0),
