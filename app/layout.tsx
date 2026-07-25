@@ -83,10 +83,18 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://api.fontshare.com" />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500,400&display=swap"
-          rel="stylesheet"
+        {/* Loaded via JS instead of a blocking <link rel="stylesheet"> so it doesn't delay first paint. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var l=document.createElement('link');l.rel='stylesheet';l.href='https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500,400&display=swap';document.head.appendChild(l);})();`,
+          }}
         />
+        <noscript>
+          <link
+            href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500,400&display=swap"
+            rel="stylesheet"
+          />
+        </noscript>
       </head>
       <body className="min-h-screen flex flex-col antialiased">
         <JsonLd data={organizationSchema} />
