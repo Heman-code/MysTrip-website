@@ -5,7 +5,10 @@ import Link from "next/link";
 import { formatDateRange, nightCount, daysUntil, type ItineraryTrack } from "@/lib/data/trips";
 import { getDbTripBySlug, getAllDbTripsForAdmin } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
+import JsonLd from "@/components/seo/JsonLd";
 import TripDetailClient from "./TripDetailClient";
+
+const BASE_URL = "https://www.mystrip.in";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -22,8 +25,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!trip) return { title: "Trip Not Found | MysTrip" };
   return {
     title: `${trip.title} | MysTrip`,
-    description: trip.shortDescription ?? undefined,
+    description:
+      trip.shortDescription ??
+      `${trip.title} — a MysTrip trip to ${trip.destination}. Book your seat with the tribe.`,
+    alternates: { canonical: `${BASE_URL}/trips/${trip.slug}` },
     openGraph: {
+      title: `${trip.title} | MysTrip`,
+      description: trip.shortDescription ?? undefined,
+      url: `${BASE_URL}/trips/${trip.slug}`,
       images: trip.coverImage ? [{ url: trip.coverImage }] : undefined,
     },
   };
@@ -56,8 +65,43 @@ export default async function TripDetailPage({ params }: Props) {
   const pct = Math.round(((trip.bookedSlots ?? 0) / trip.maxSlots) * 100);
   const isMultiDay = nights > 0;
 
+  const eventSchema = {
+    "@context": "https://schema.org",
+    "@type": "TouristTrip",
+    name: trip.title,
+    description: trip.shortDescription ?? trip.description ?? undefined,
+    image: coverImage.startsWith("http") ? coverImage : `${BASE_URL}${coverImage}`,
+    touristType: "Students",
+    provider: { "@type": "TravelAgency", name: "MysTrip", url: BASE_URL },
+    itinerary: {
+      "@type": "Place",
+      name: trip.destination,
+      address: { "@type": "PostalAddress", addressLocality: trip.destination, addressRegion: trip.state ?? "Rajasthan", addressCountry: "IN" },
+    },
+    offers: {
+      "@type": "Offer",
+      price: basePrice,
+      priceCurrency: "INR",
+      availability: trip.registrationOpen ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+      url: `${BASE_URL}/trips/${trip.slug}`,
+      validFrom: trip.createdAt ? new Date(trip.createdAt).toISOString() : undefined,
+    },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: "Trips", item: `${BASE_URL}/trips` },
+      { "@type": "ListItem", position: 3, name: trip.title, item: `${BASE_URL}/trips/${trip.slug}` },
+    ],
+  };
+
   return (
     <>
+      <JsonLd data={eventSchema} />
+      <JsonLd data={breadcrumbSchema} />
       {/* ── Hero ── */}
       <section className="relative h-[56vh] min-h-[380px] sm:h-[70vh] sm:min-h-[500px] flex flex-col justify-end overflow-hidden">
         <Image

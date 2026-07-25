@@ -15,7 +15,10 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const trip = await getDbTripBySlug(slug);
-  return { title: trip ? `Register — ${trip.title} | MysTrip` : "Register | MysTrip" };
+  return {
+    title: trip ? `Register — ${trip.title} | MysTrip` : "Register | MysTrip",
+    robots: { index: false, follow: false },
+  };
 }
 
 export default async function RegisterPage({ params }: Props) {

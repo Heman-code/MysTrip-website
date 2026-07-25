@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { users, registrations, trips, reviews } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import DashboardClient from "./DashboardClient";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardPage() {
   const session = await auth();

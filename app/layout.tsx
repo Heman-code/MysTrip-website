@@ -3,23 +3,73 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Providers from "@/components/Providers";
+import JsonLd from "@/components/seo/JsonLd";
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "TravelAgency",
+  name: "MysTrip",
+  alternateName: "MysTrip Travel Tribe",
+  url: "https://www.mystrip.in",
+  logo: "https://www.mystrip.in/logos/primary-logo.png",
+  description:
+    "MysTrip is a tribe-led youth travel community for college students in Jaipur, including Manipal University Jaipur (MUJ). Treks, day explorations, weekend escapes, and semester trips.",
+  email: "team@mystrip.in",
+  telephone: "+91-8822068322",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Jaipur",
+    addressRegion: "Rajasthan",
+    addressCountry: "IN",
+  },
+  areaServed: { "@type": "City", name: "Jaipur" },
+  sameAs: ["https://instagram.com/mystrip.in", "https://linkedin.com/company/mystrip"],
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "MysTrip",
+  url: "https://www.mystrip.in",
+};
 
 export const metadata: Metadata = {
   title: {
-    default: "MysTrip — Not a Tour. A Tribe.",
+    default: "MysTrip — Your Travel Tribe in Jaipur | Not a Tour. A Tribe.",
     template: "%s | MysTrip",
   },
   description:
-    "India's youth travel community. Not a tour. Not a package. A bunch of strangers who become your people. Treks, explorations, and adventures built for college students.",
-  keywords: ["youth travel", "college trips", "tribe travel", "Jaipur student travel", "MysTrip", "trekking", "Sundarone"],
+    "MysTrip is Jaipur's youth travel tribe — treks, day explorations, and weekend escapes built for Manipal University Jaipur (MUJ) students and the wider Jaipur college crowd. Not a tour. Not a package. A bunch of strangers who become your people.",
+  keywords: [
+    "MysTrip",
+    "travel tribe",
+    "youth travel community India",
+    "college trips Jaipur",
+    "Manipal University Jaipur students",
+    "MUJ student travel",
+    "Jaipur student trips",
+    "Jaipur trekking group",
+    "upcoming trips Jaipur",
+    "Sundarone Tribe",
+    "Aravali treks",
+    "weekend trips from Jaipur",
+  ],
   openGraph: {
-    title: "MysTrip — Not a Tour. A Tribe.",
+    title: "MysTrip — Your Travel Tribe in Jaipur",
     description: "Not a tour. Not a package. A bunch of strangers who become your people.",
     url: "https://www.mystrip.in",
     siteName: "MysTrip",
     locale: "en_IN",
     type: "website",
+    images: [{ url: "/trips/hero-udaipur-cliff-group-2.jpg", width: 1200, height: 630, alt: "MysTrip travellers on a trip" }],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "MysTrip — Your Travel Tribe in Jaipur",
+    description: "Not a tour. Not a package. A bunch of strangers who become your people.",
+    images: ["/trips/hero-udaipur-cliff-group-2.jpg"],
+  },
+  alternates: { canonical: "https://www.mystrip.in" },
   robots: { index: true, follow: true },
   metadataBase: new URL("https://www.mystrip.in"),
 };
@@ -39,6 +89,8 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col antialiased">
+        <JsonLd data={organizationSchema} />
+        <JsonLd data={websiteSchema} />
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>

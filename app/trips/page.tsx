@@ -7,7 +7,13 @@ import TripsClient from "./TripsClient";
 export const metadata: Metadata = {
   title: "Upcoming Trips — July to December 2026 | MysTrip",
   description:
-    "Treks, day explorations, weekend escapes, and flagship multi-night journeys. MysTrip's full calendar for the 2026–27 academic year.",
+    "Every upcoming MysTrip trip from Jaipur — Aravali treks, day explorations, weekend escapes, and flagship multi-night journeys for the 2026–27 academic year. Built for Manipal University Jaipur students and the wider Jaipur college crowd.",
+  alternates: { canonical: "https://www.mystrip.in/trips" },
+  openGraph: {
+    title: "Upcoming Trips from Jaipur | MysTrip",
+    description: "Treks, day explorations, weekend escapes, and flagship journeys — MysTrip's full calendar.",
+    url: "https://www.mystrip.in/trips",
+  },
 };
 
 export default async function TripsPage() {

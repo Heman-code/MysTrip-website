@@ -12,12 +12,21 @@ import { formatCurrency } from "@/lib/utils";
 // White:  #ffffff
 
 export const metadata: Metadata = {
-  title: "Sundarone Tribe | Your Hostel. Your Community. Your Adventures.",
+  title: "Sundarone Tribe | Travel Community for Sundarone Hostel & MUJ Students",
   description:
-    "Sundarone Tribe is the official travel community for Sundarone Hostel residents. Jaipur explorations, Aravali treks, weekend escapes, and semester-end trips planned around your academic calendar.",
+    "Sundarone Tribe is the official travel community for Sundarone Hostel residents near Manipal University Jaipur (MUJ). Jaipur explorations, Aravali treks, weekend escapes, and semester-end trips — planned around your academic calendar, exclusively for the Sundarone crowd.",
+  keywords: [
+    "Sundarone Tribe",
+    "Sundarone Hostel Jaipur",
+    "Manipal University Jaipur hostel travel",
+    "MUJ student trips",
+    "Jaipur hostel community",
+  ],
+  alternates: { canonical: "https://www.mystrip.in/sundarone" },
   openGraph: {
-    title: "Sundarone Tribe",
+    title: "Sundarone Tribe — Travel Community for MUJ Students",
     description: "Your hostel. Your community. Your adventures.",
+    url: "https://www.mystrip.in/sundarone",
     images: ["/trips/sundarone-hero-cliff.jpg"],
   },
 };

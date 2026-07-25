@@ -6,7 +6,8 @@ import { ArrowRight, Compass, HeartHandshake, ShieldCheck, Sparkles } from "luci
 export const metadata: Metadata = {
   title: "About | MysTrip",
   description:
-    "MysTrip is a tribe-led travel community for college students and young professionals. Here's the story of why we exist, and who we're building it for.",
+    "MysTrip is a tribe-led travel community for college students and young professionals, built out of Jaipur for Manipal University Jaipur students and beyond. Here's the story of why we exist, and who we're building it for.",
+  alternates: { canonical: "https://www.mystrip.in/about" },
 };
 
 const values = [
