@@ -602,7 +602,7 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
                   className="relative w-full h-40 rounded-xl overflow-hidden border-2"
                   style={{ borderColor: "rgba(16,185,129,0.4)" }}
                 >
-                  <Image src={screenshotPreview} alt="Payment screenshot preview" fill className="object-cover" unoptimized />
+                  <Image src={screenshotPreview} alt="Payment screenshot preview" fill sizes="(max-width: 640px) 100vw, 576px" className="object-cover" unoptimized />
                   <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                     <span className="text-white text-xs font-bold">Tap to change</span>
                   </div>

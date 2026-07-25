@@ -56,6 +56,7 @@ export default function HeroSection() {
           src={heroBgs[bgIndex].src}
           alt={heroBgs[bgIndex].label}
           fill
+          sizes="100vw"
           className="object-cover object-center"
           priority
           quality={90}

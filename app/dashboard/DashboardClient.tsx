@@ -75,7 +75,7 @@ export default function DashboardClient({ user, pastTrips, reviewableTrips, revi
       {/* Header */}
       <div style={{ background: "#0B1210" }} className="pt-20 pb-10 sm:pt-24 sm:pb-16 relative overflow-hidden">
         <div className="absolute right-0 top-0 w-64 h-64 opacity-[0.04] pointer-events-none">
-          <Image src="/logos/mascot-orange.png" alt="" fill className="object-contain" />
+          <Image src="/logos/mascot-orange.png" alt="" fill sizes="256px" className="object-contain" />
         </div>
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -155,7 +155,7 @@ export default function DashboardClient({ user, pastTrips, reviewableTrips, revi
             {/* Welcome card — different message for returning vs new members */}
             <div className="rounded-2xl p-8 relative overflow-hidden" style={{ background: "#0B1210" }}>
               <div className="absolute right-0 top-0 w-48 h-48 opacity-[0.06]">
-                <Image src="/logos/mascot-orange.png" alt="" fill className="object-contain" />
+                <Image src="/logos/mascot-orange.png" alt="" fill sizes="192px" className="object-contain" />
               </div>
               <div className="relative">
                 {pastTrips.length > 0 ? (

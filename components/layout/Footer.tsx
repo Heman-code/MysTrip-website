@@ -7,7 +7,7 @@ export default function Footer() {
     <footer style={{ background: "#01180F" }} className="text-white relative overflow-hidden">
       {/* Mascot watermark */}
       <div className="absolute right-0 bottom-0 w-80 h-80 opacity-[0.05] pointer-events-none select-none">
-        <Image src="/logos/mascot-orange.png" alt="" fill className="object-contain object-right-bottom" aria-hidden />
+        <Image src="/logos/mascot-orange.png" alt="" fill sizes="320px" className="object-contain object-right-bottom" aria-hidden />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 sm:pt-16 sm:pb-10">

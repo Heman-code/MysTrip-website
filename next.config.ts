@@ -38,6 +38,7 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: process.env.NODE_ENV === "development" ? 0 : 31536000,
+    qualities: [75, 90],
   },
 };
 

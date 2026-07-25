@@ -78,6 +78,7 @@ export default function AboutPage() {
           fill
           priority
           quality={90}
+          sizes="100vw"
           className="object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
