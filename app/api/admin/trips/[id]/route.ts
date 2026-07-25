@@ -37,6 +37,7 @@ export async function PATCH(
   if ("basePrice" in body) updates.basePrice = String(body.basePrice);
   if ("maxSlots" in body) updates.maxSlots = Number(body.maxSlots);
   if ("minSlots" in body) updates.minSlots = Number(body.minSlots);
+  if ("bookedSlots" in body) updates.bookedSlots = Math.max(0, Math.round(Number(body.bookedSlots)) || 0);
   if ("highlights" in body) updates.highlights = Array.isArray(body.highlights) ? body.highlights : [];
   if ("inclusions" in body) updates.inclusions = Array.isArray(body.inclusions) ? body.inclusions : [];
   if ("exclusions" in body) updates.exclusions = Array.isArray(body.exclusions) ? body.exclusions : [];

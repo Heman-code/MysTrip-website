@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Users, Star, BarChart2, CheckCircle, Clock, XCircle, Receipt, Plus, Pencil, MapPin } from "lucide-react";
+import { Users, Star, BarChart2, CheckCircle, Clock, XCircle, Receipt, Plus, Pencil, MapPin, Check, X } from "lucide-react";
 import TripForm from "./TripForm";
 
 interface UserRow {
@@ -92,6 +92,30 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
   const [formOpen, setFormOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState<AdminTripRow | null>(null);
   const [togglingTripId, setTogglingTripId] = useState<string | null>(null);
+  const [editingSlotsId, setEditingSlotsId] = useState<string | null>(null);
+  const [slotsDraft, setSlotsDraft] = useState("");
+  const [savingSlots, setSavingSlots] = useState(false);
+
+  const startEditingSlots = (trip: AdminTripRow) => {
+    setEditingSlotsId(trip.id);
+    setSlotsDraft(String(trip.bookedSlots));
+  };
+
+  const saveBookedSlots = async (tripId: string) => {
+    const value = Math.max(0, Math.round(Number(slotsDraft)));
+    if (Number.isNaN(value)) return;
+    setSavingSlots(true);
+    const res = await fetch(`/api/admin/trips/${tripId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bookedSlots: value }),
+    });
+    if (res.ok) {
+      setTrips((ts) => ts.map((t) => (t.id === tripId ? { ...t, bookedSlots: value } : t)));
+      setEditingSlotsId(null);
+    }
+    setSavingSlots(false);
+  };
 
   const toggleRegistration = async (trip: AdminTripRow) => {
     setTogglingTripId(trip.id);
@@ -548,9 +572,54 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
                       {new Date(t.tripDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                       <span className="mx-1">·</span>
                       ₹{t.basePrice.toLocaleString("en-IN")}
-                      <span className="mx-1">·</span>
-                      {t.bookedSlots}/{t.maxSlots} booked
                     </p>
+
+                    <div className="mt-1.5">
+                      {editingSlotsId === t.id ? (
+                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="number"
+                            min="0"
+                            autoFocus
+                            value={slotsDraft}
+                            onChange={(e) => setSlotsDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveBookedSlots(t.id);
+                              if (e.key === "Escape") setEditingSlotsId(null);
+                            }}
+                            className="w-16 px-2 py-1 rounded-lg border border-orange-300 text-xs text-gray-800 outline-none focus:border-orange-500"
+                          />
+                          <span className="text-xs text-gray-400">/ {t.maxSlots} booked</span>
+                          <button
+                            type="button"
+                            onClick={() => saveBookedSlots(t.id)}
+                            disabled={savingSlots}
+                            className="p-1 rounded-lg text-white disabled:opacity-50 flex-shrink-0"
+                            style={{ background: "#10b981" }}
+                            aria-label="Save seats"
+                          >
+                            <Check size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingSlotsId(null)}
+                            className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 flex-shrink-0"
+                            aria-label="Cancel"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => startEditingSlots(t)}
+                          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"
+                        >
+                          {t.bookedSlots}/{t.maxSlots} booked
+                          <Pencil size={10} />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end">
