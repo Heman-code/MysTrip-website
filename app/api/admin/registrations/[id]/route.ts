@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { registrations, trips } from "@/lib/db/schema";
@@ -43,6 +44,12 @@ export async function PATCH(
       .update(trips)
       .set({ bookedSlots: sql`greatest(${trips.bookedSlots} - 1, 0)` })
       .where(eq(trips.id, registration.tripId));
+
+    const [trip] = await db.select({ slug: trips.slug }).from(trips).where(eq(trips.id, registration.tripId)).limit(1);
+    revalidatePath("/");
+    revalidatePath("/trips");
+    revalidatePath("/sundarone");
+    if (trip) revalidatePath(`/trips/${trip.slug}`);
   }
 
   return NextResponse.json({ ok: true });

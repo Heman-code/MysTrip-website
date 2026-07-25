@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq, sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { coupons, registrations, trips, users } from "@/lib/db/schema";
@@ -106,6 +107,11 @@ export async function POST(req: NextRequest) {
     .update(trips)
     .set({ bookedSlots: sql`${trips.bookedSlots} + 1` })
     .where(eq(trips.id, dbTripId));
+
+  revalidatePath("/");
+  revalidatePath("/trips");
+  revalidatePath("/sundarone");
+  revalidatePath(`/trips/${trip.slug}`);
 
   if (coupon) {
     await db

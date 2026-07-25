@@ -1,4 +1,4 @@
-import { and, asc, eq, gte } from "drizzle-orm";
+import { and, asc, eq, gte, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { trips } from "@/lib/db/schema";
 
@@ -63,8 +63,8 @@ export async function getDbTripBySlug(slug: string) {
 export async function getDbUpcomingTrips(source?: "mystrip" | "sundarone", limit?: number) {
   const today = new Date().toISOString().split("T")[0];
   const conditions = source
-    ? and(gte(trips.tripDate, today), eq(trips.source, source))
-    : gte(trips.tripDate, today);
+    ? and(gte(trips.tripDate, today), eq(trips.source, source), ne(trips.status, "executed"))
+    : and(gte(trips.tripDate, today), ne(trips.status, "executed"));
 
   const query = db.select().from(trips).where(conditions).orderBy(asc(trips.tripDate));
   const rows = await query;

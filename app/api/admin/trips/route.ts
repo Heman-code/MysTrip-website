@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { trips } from "@/lib/db/schema";
@@ -79,6 +80,10 @@ export async function POST(req: NextRequest) {
       registrationOpen: !!registrationOpen,
     })
     .returning({ id: trips.id, slug: trips.slug });
+
+  revalidatePath("/");
+  revalidatePath("/trips");
+  revalidatePath("/sundarone");
 
   return NextResponse.json({ ok: true, trip }, { status: 201 });
 }

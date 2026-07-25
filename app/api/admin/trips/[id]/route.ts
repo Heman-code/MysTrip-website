@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { trips } from "@/lib/db/schema";
@@ -15,7 +16,7 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const [existing] = await db.select({ id: trips.id }).from(trips).where(eq(trips.id, id)).limit(1);
+  const [existing] = await db.select({ id: trips.id, slug: trips.slug }).from(trips).where(eq(trips.id, id)).limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Trip not found" }, { status: 404 });
   }
@@ -50,6 +51,11 @@ export async function PATCH(
   updates.updatedAt = new Date();
 
   await db.update(trips).set(updates).where(eq(trips.id, id));
+
+  revalidatePath("/");
+  revalidatePath("/trips");
+  revalidatePath("/sundarone");
+  revalidatePath(`/trips/${existing.slug}`);
 
   return NextResponse.json({ ok: true });
 }
