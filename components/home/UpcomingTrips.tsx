@@ -48,7 +48,7 @@ function TripCard({ trip, delay }: { trip: TripCardData; delay: number }) {
             alt={trip.title}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 33vw"
+            sizes="(max-width: 640px) 78vw, (max-width: 768px) 70vw, 33vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
 
