@@ -45,7 +45,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="relative min-h-screen flex flex-col overflow-hidden">
+    <section className="relative min-h-dvh flex flex-col overflow-hidden">
 
       {/* Background photo — cycles */}
       <div
@@ -160,8 +160,8 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Photo location indicator */}
-      <div className="absolute bottom-28 right-6 lg:right-10 flex items-center gap-2">
+      {/* Photo location indicator — desktop only; on mobile the cycling is automatic and unlabeled */}
+      <div className="absolute bottom-28 right-6 lg:right-10 hidden sm:flex items-center gap-2">
         {heroBgs.map((bg, i) => (
           <button
             key={bg.src}

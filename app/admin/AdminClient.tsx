@@ -149,12 +149,12 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
               MysTrip Dashboard
             </h1>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none">
             {tabs.map((tab, i) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(i)}
-                className="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 flex-shrink-0 whitespace-nowrap"
                 style={
                   i === activeTab
                     ? { background: "#FF6016", color: "#fff" }
@@ -226,7 +226,7 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
                 <thead>
                   <tr className="border-b border-gray-100">
                     {["Name", "Email", "College", "Role", "Joined"].map((h) => (
-                      <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                         {h}
                       </th>
                     ))}
@@ -235,10 +235,10 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
                 <tbody>
                   {users.map((u) => (
                     <tr key={u.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">{u.fullName}</td>
-                      <td className="px-6 py-4 text-gray-500">{u.email}</td>
-                      <td className="px-6 py-4 text-gray-500">{u.college || "—"}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{u.fullName}</td>
+                      <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{u.email}</td>
+                      <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{u.college || "—"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className="px-2.5 py-1 rounded-full text-xs font-bold"
                           style={
@@ -250,7 +250,7 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-400">
+                      <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
                         {new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                       </td>
                     </tr>
