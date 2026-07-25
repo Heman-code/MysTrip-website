@@ -285,7 +285,7 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
 
             {reviews.map((rv) => (
               <div key={rv.id} className="bg-white rounded-2xl border border-gray-100 p-6">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
                       <span className="font-semibold text-gray-900">{rv.userName}</span>
@@ -305,7 +305,7 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
                   <button
                     onClick={() => approve(rv.id)}
                     disabled={approving === rv.id}
-                    className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                    className="self-start flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
                     style={{ background: "#10b981" }}
                   >
                     <CheckCircle size={15} />
