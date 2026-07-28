@@ -113,7 +113,7 @@ function GalleryPhoto({ photo, delay }: { photo: { src: string; label: string; s
       {/* Hover overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-        <p className="text-white text-sm font-semibold" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+        <p className="text-white text-sm font-bold" style={{ fontFamily: "'Clash Display', sans-serif" }}>
           {photo.label}
         </p>
       </div>
