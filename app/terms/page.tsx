@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms | MysTrip",
+  title: "Terms",
   description: "The terms that cover booking and joining a MysTrip or Sundarone Tribe trip.",
 };
 

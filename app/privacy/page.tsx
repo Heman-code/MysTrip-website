@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | MysTrip",
+  title: "Privacy Policy",
   description: "How MysTrip collects, uses, and protects your information.",
 };
 

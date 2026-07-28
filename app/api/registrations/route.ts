@@ -31,6 +31,9 @@ export async function POST(req: NextRequest) {
   if (!trip || !trip.registrationOpen) {
     return NextResponse.json({ error: "Registration is not open for this trip." }, { status: 400 });
   }
+  if ((trip.bookedSlots ?? 0) >= trip.maxSlots) {
+    return NextResponse.json({ error: "This trip is full. Please check back for the next batch." }, { status: 409 });
+  }
 
   // Re-validate the coupon authoritatively — never trust a client-sent amount.
   // Since the QR they already paid was generated with this same discount, a
@@ -89,6 +92,21 @@ export async function POST(req: NextRequest) {
 
   const gaClientId = extractGaClientId(req.cookies.get("_ga")?.value);
 
+  // Atomically claim a slot before creating the registration — the WHERE
+  // condition makes this a single conditional statement at the DB level, so
+  // two people submitting for the last seat at the same instant can't both
+  // succeed (the earlier plain "+1 with no condition" update, run after the
+  // insert, had exactly that race).
+  const [slotClaim] = await db
+    .update(trips)
+    .set({ bookedSlots: sql`${trips.bookedSlots} + 1` })
+    .where(and(eq(trips.id, dbTripId), sql`${trips.bookedSlots} < ${trips.maxSlots}`))
+    .returning({ id: trips.id });
+
+  if (!slotClaim) {
+    return NextResponse.json({ error: "This trip is full. Please check back for the next batch." }, { status: 409 });
+  }
+
   const [registration] = await db
     .insert(registrations)
     .values({
@@ -106,11 +124,6 @@ export async function POST(req: NextRequest) {
       gaClientId,
     })
     .returning({ id: registrations.id });
-
-  await db
-    .update(trips)
-    .set({ bookedSlots: sql`${trips.bookedSlots} + 1` })
-    .where(eq(trips.id, dbTripId));
 
   revalidatePath("/", "layout");
   revalidatePath("/trips");

@@ -5,7 +5,7 @@ import { getDbUpcomingTrips, toTripCardData } from "@/lib/db/trips";
 import TripsClient from "./TripsClient";
 
 export const metadata: Metadata = {
-  title: "Upcoming Trips — July to December 2026 | MysTrip",
+  title: "Upcoming Trips — July to December 2026",
   description:
     "Every upcoming MysTrip trip from Jaipur — Aravali treks, day explorations, weekend escapes, and flagship multi-night journeys for the 2026–27 academic year. Built for Manipal University Jaipur students and the wider Jaipur college crowd.",
   alternates: { canonical: "https://www.mystrip.in/trips" },

@@ -24,9 +24,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const trip = await getDbTripBySlug(slug);
-  if (!trip) return { title: "Trip Not Found | MysTrip" };
+  if (!trip) return { title: "Trip Not Found" };
   return {
-    title: `${trip.title} | MysTrip`,
+    title: trip.title,
     description:
       trip.shortDescription ??
       `${trip.title} — a MysTrip trip to ${trip.destination}. Book your seat with the tribe.`,
@@ -66,6 +66,8 @@ export default async function TripDetailPage({ params }: Props) {
   const slotsLeft = trip.maxSlots - (trip.bookedSlots ?? 0);
   const pct = Math.round(((trip.bookedSlots ?? 0) / trip.maxSlots) * 100);
   const isMultiDay = nights > 0;
+  const isSoldOut = slotsLeft <= 0;
+  const canRegister = trip.registrationOpen && !isSoldOut;
 
   const eventSchema = {
     "@context": "https://schema.org",
@@ -270,7 +272,11 @@ export default async function TripDetailPage({ params }: Props) {
                       {trip.registrationOpen ? formatCurrency(basePrice) : "Price revealing soon"}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
-                      {trip.registrationOpen ? "Pay via UPI · confirmed after verification" : "Drop us a message to be first to know"}
+                      {isSoldOut
+                        ? "All spots are taken for this batch"
+                        : trip.registrationOpen
+                          ? "Pay via UPI · confirmed after verification"
+                          : "Drop us a message to be first to know"}
                     </p>
                   </div>
 
@@ -310,7 +316,7 @@ export default async function TripDetailPage({ params }: Props) {
 
                   {/* CTA */}
                   <div className="px-6 pb-6">
-                    {trip.registrationOpen ? (
+                    {canRegister ? (
                       <TrackedLink
                         href={`/trips/${trip.slug}/register`}
                         eventName="register_start"
@@ -320,6 +326,15 @@ export default async function TripDetailPage({ params }: Props) {
                       >
                         Register Now →
                       </TrackedLink>
+                    ) : isSoldOut ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="block w-full text-center py-4 rounded-2xl font-bold text-base cursor-not-allowed"
+                        style={{ background: "#f1f5f9", color: "#94a3b8" }}
+                      >
+                        Sold Out
+                      </button>
                     ) : (
                       <a
                         href={`https://wa.me/918822068322?text=Hey! I want to join the ${encodeURIComponent(trip.title)} trip.`}
@@ -332,7 +347,9 @@ export default async function TripDetailPage({ params }: Props) {
                       </a>
                     )}
                     <p className="text-center text-xs text-gray-400 mt-3">
-                      Spots are limited · We&apos;ll confirm your seat personally
+                      {isSoldOut
+                        ? "Message us to get on the waitlist for the next batch"
+                        : "Spots are limited · We'll confirm your seat personally"}
                     </p>
                   </div>
 
@@ -376,7 +393,7 @@ export default async function TripDetailPage({ params }: Props) {
             {trip.registrationOpen ? formatCurrency(basePrice) : "Price revealing soon"}
           </p>
         </div>
-        {trip.registrationOpen ? (
+        {canRegister ? (
           <TrackedLink
             href={`/trips/${trip.slug}/register`}
             eventName="register_start"
@@ -386,6 +403,15 @@ export default async function TripDetailPage({ params }: Props) {
           >
             Register Now →
           </TrackedLink>
+        ) : isSoldOut ? (
+          <button
+            type="button"
+            disabled
+            className="px-6 py-3 rounded-2xl font-bold text-sm flex-shrink-0 cursor-not-allowed"
+            style={{ background: "#f1f5f9", color: "#94a3b8" }}
+          >
+            Sold Out
+          </button>
         ) : (
           <a
             href={`https://wa.me/918822068322?text=Hey! I want to join the ${encodeURIComponent(trip.title)} trip.`}

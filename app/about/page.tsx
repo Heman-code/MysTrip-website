@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Compass, HeartHandshake, ShieldCheck, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Our Story | MysTrip",
+  title: "Our Story",
   description:
     "MysTrip is the original travel tribe community at Manipal University Jaipur, founded 1st March 2025 by Hemant Kumar Sharma and Arpita Dutta. Not a tour agency, not a package seller — the story of how a solo gap-year trip became MUJ's first travel community.",
   alternates: { canonical: "https://www.mystrip.in/about" },

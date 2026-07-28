@@ -28,30 +28,52 @@ export async function POST(req: NextRequest) {
     }
 
     const [existing] = await db
-      .select({ id: users.id })
+      .select({ id: users.id, passwordHash: users.passwordHash })
       .from(users)
       .where(eq(users.email, email.toLowerCase().trim()))
       .limit(1);
 
-    if (existing) {
+    // A row can exist without ever being an account: past travellers were
+    // bulk-imported (by email) from before this website existed, purely so
+    // their trip history is queryable. Only a real passwordHash means
+    // someone actually signed up here before — that's the only case worth
+    // blocking. Otherwise, turn the legacy row into their real account
+    // in place (same id), so their existing registrations stay attached.
+    if (existing?.passwordHash) {
       return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
+    const isReturningTraveller = !!existing || !!hasTraveledBefore;
 
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        fullName: name.trim(),
-        email: email.toLowerCase().trim(),
-        phone: phone?.trim() || null,
-        passwordHash,
-        college: college?.trim() || null,
-        hasTraveledBefore: !!hasTraveledBefore,
-      })
-      .returning({ id: users.id, email: users.email });
+    let newUser: { id: string; email: string };
+    if (existing) {
+      [newUser] = await db
+        .update(users)
+        .set({
+          fullName: name.trim(),
+          phone: phone?.trim() || null,
+          passwordHash,
+          college: college?.trim() || null,
+          hasTraveledBefore: true,
+        })
+        .where(eq(users.id, existing.id))
+        .returning({ id: users.id, email: users.email });
+    } else {
+      [newUser] = await db
+        .insert(users)
+        .values({
+          fullName: name.trim(),
+          email: email.toLowerCase().trim(),
+          phone: phone?.trim() || null,
+          passwordHash,
+          college: college?.trim() || null,
+          hasTraveledBefore: !!hasTraveledBefore,
+        })
+        .returning({ id: users.id, email: users.email });
+    }
 
-    const coupon = await issueWelcomeCoupon(newUser.id, !!hasTraveledBefore);
+    const coupon = await issueWelcomeCoupon(newUser.id, isReturningTraveller);
 
     return NextResponse.json(
       {

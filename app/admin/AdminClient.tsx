@@ -95,6 +95,9 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
   const [editingSlotsId, setEditingSlotsId] = useState<string | null>(null);
   const [slotsDraft, setSlotsDraft] = useState("");
   const [savingSlots, setSavingSlots] = useState(false);
+  const [openingPriceId, setOpeningPriceId] = useState<string | null>(null);
+  const [priceDraft, setPriceDraft] = useState("");
+  const [savingPrice, setSavingPrice] = useState(false);
 
   const startEditingSlots = (trip: AdminTripRow) => {
     setEditingSlotsId(trip.id);
@@ -118,17 +121,41 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
   };
 
   const toggleRegistration = async (trip: AdminTripRow) => {
+    // Opening registration is the moment the real price goes live everywhere
+    // "Price revealing soon" was showing, so require confirming/setting it
+    // in the same motion instead of trusting whatever basePrice happens to
+    // already be on the trip.
+    if (!trip.registrationOpen) {
+      setOpeningPriceId(trip.id);
+      setPriceDraft(trip.basePrice ? String(trip.basePrice) : "");
+      return;
+    }
     setTogglingTripId(trip.id);
-    const nextValue = !trip.registrationOpen;
     const res = await fetch(`/api/admin/trips/${trip.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ registrationOpen: nextValue }),
+      body: JSON.stringify({ registrationOpen: false }),
     });
     if (res.ok) {
-      setTrips((ts) => ts.map((t) => (t.id === trip.id ? { ...t, registrationOpen: nextValue } : t)));
+      setTrips((ts) => ts.map((t) => (t.id === trip.id ? { ...t, registrationOpen: false } : t)));
     }
     setTogglingTripId(null);
+  };
+
+  const confirmOpenRegistration = async (tripId: string) => {
+    const price = Number(priceDraft);
+    if (!priceDraft || Number.isNaN(price) || price <= 0) return;
+    setSavingPrice(true);
+    const res = await fetch(`/api/admin/trips/${tripId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ registrationOpen: true, basePrice: price }),
+    });
+    if (res.ok) {
+      setTrips((ts) => ts.map((t) => (t.id === tripId ? { ...t, registrationOpen: true, basePrice: price } : t)));
+      setOpeningPriceId(null);
+    }
+    setSavingPrice(false);
   };
 
   const handleTripSaved = (saved: AdminTripRow) => {
@@ -623,23 +650,60 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
                   </div>
 
                   <div className="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <span className="text-xs font-semibold text-gray-500">
-                        {t.registrationOpen ? "Open" : "Closed"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => toggleRegistration(t)}
-                        disabled={togglingTripId === t.id}
-                        className="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
-                        style={{ background: t.registrationOpen ? "#10b981" : "#d1d5db" }}
-                      >
-                        <span
-                          className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
-                          style={{ transform: t.registrationOpen ? "translateX(20px)" : "translateX(4px)" }}
+                    {openingPriceId === t.id ? (
+                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-xs text-gray-400">₹</span>
+                        <input
+                          type="number"
+                          min="0"
+                          autoFocus
+                          placeholder="Price"
+                          value={priceDraft}
+                          onChange={(e) => setPriceDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") confirmOpenRegistration(t.id);
+                            if (e.key === "Escape") setOpeningPriceId(null);
+                          }}
+                          className="w-20 px-2 py-1 rounded-lg border border-orange-300 text-xs text-gray-800 outline-none focus:border-orange-500"
                         />
-                      </button>
-                    </label>
+                        <button
+                          type="button"
+                          onClick={() => confirmOpenRegistration(t.id)}
+                          disabled={savingPrice}
+                          className="p-1 rounded-lg text-white disabled:opacity-50 flex-shrink-0"
+                          style={{ background: "#10b981" }}
+                          aria-label="Confirm price and open registration"
+                        >
+                          <Check size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOpeningPriceId(null)}
+                          className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 flex-shrink-0"
+                          aria-label="Cancel"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <span className="text-xs font-semibold text-gray-500">
+                          {t.registrationOpen ? "Open" : "Closed"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleRegistration(t)}
+                          disabled={togglingTripId === t.id}
+                          className="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
+                          style={{ background: t.registrationOpen ? "#10b981" : "#d1d5db" }}
+                        >
+                          <span
+                            className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
+                            style={{ transform: t.registrationOpen ? "translateX(20px)" : "translateX(4px)" }}
+                          />
+                        </button>
+                      </label>
+                    )}
                     <button
                       onClick={() => { setEditingTrip(t); setFormOpen(true); }}
                       className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-gray-200 hover:bg-gray-50 transition-all"

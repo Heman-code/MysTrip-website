@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const trip = await getDbTripBySlug(slug);
   return {
-    title: trip ? `Register — ${trip.title} | MysTrip` : "Register | MysTrip",
+    title: trip ? `Register — ${trip.title}` : "Register",
     robots: { index: false, follow: false },
   };
 }
@@ -25,6 +25,7 @@ export default async function RegisterPage({ params }: Props) {
   const { slug } = await params;
   const trip = await getDbTripBySlug(slug);
   if (!trip || !trip.registrationOpen) notFound();
+  if ((trip.bookedSlots ?? 0) >= trip.maxSlots) notFound();
 
   const session = await auth();
   if (!session?.user?.id) redirect(`/auth/login?callbackUrl=/trips/${slug}/register`);

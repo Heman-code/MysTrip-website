@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, PenLine } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Blog — Coming Soon | MysTrip",
+  title: "Blog — Coming Soon",
   description: "Trip stories, guides, and behind-the-scenes from the MysTrip tribe. Coming soon.",
 };
 
