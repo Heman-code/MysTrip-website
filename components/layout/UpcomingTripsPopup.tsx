@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { X, ArrowRight } from "lucide-react";
 import type { TripCardData } from "@/lib/db/trips";
+import { trackEvent } from "@/lib/analytics";
 
 const SESSION_KEY = "mystrip-popup-shown-v1";
 const ALLOWED_PATHS = ["/", "/trips", "/sundarone", "/about", "/blog"];
@@ -27,6 +28,7 @@ export default function UpcomingTripsPopup({ trips }: { trips: TripCardData[] })
     const timer = setTimeout(() => {
       setVisible(true);
       sessionStorage.setItem(SESSION_KEY, "1");
+      trackEvent("popup_shown", { trip_count: trips.length, path: pathname });
     }, 900);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -34,11 +36,16 @@ export default function UpcomingTripsPopup({ trips }: { trips: TripCardData[] })
 
   if (!visible) return null;
 
+  const dismiss = () => {
+    trackEvent("popup_dismissed");
+    setVisible(false);
+  };
+
   return (
     <div
       className="fixed inset-0 z-[70] flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.65)" }}
-      onClick={() => setVisible(false)}
+      onClick={dismiss}
     >
       <div
         className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl"
@@ -46,7 +53,7 @@ export default function UpcomingTripsPopup({ trips }: { trips: TripCardData[] })
         style={{ animation: "popupIn 0.35s cubic-bezier(0.16,1,0.3,1)" }}
       >
         <button
-          onClick={() => setVisible(false)}
+          onClick={dismiss}
           className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
           aria-label="Close"
         >
@@ -72,14 +79,17 @@ export default function UpcomingTripsPopup({ trips }: { trips: TripCardData[] })
         </div>
 
         <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
-          {trips.map((trip) => {
+          {trips.map((trip, index) => {
             const seatsLeft = Math.max(0, trip.maxSlots - trip.bookedSlots);
             const days = daysAway(trip.startDate);
             return (
               <Link
                 key={trip.id}
                 href={`/trips/${trip.slug}`}
-                onClick={() => setVisible(false)}
+                onClick={() => {
+                  trackEvent("popup_trip_click", { trip_slug: trip.slug, trip_title: trip.title, position: index });
+                  setVisible(false);
+                }}
                 className="group flex gap-3 items-center rounded-2xl border border-gray-100 p-2.5 hover:border-gray-200 hover:shadow-md transition-all"
               >
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
@@ -106,7 +116,10 @@ export default function UpcomingTripsPopup({ trips }: { trips: TripCardData[] })
         <div className="px-4 pb-4">
           <Link
             href="/trips"
-            onClick={() => setVisible(false)}
+            onClick={() => {
+              trackEvent("popup_browse_all_click");
+              setVisible(false);
+            }}
             className="block text-center text-xs font-semibold py-2.5 rounded-xl transition-colors hover:bg-gray-50"
             style={{ color: "#64748b" }}
           >

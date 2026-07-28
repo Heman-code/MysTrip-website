@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { X, ArrowRight } from "lucide-react";
 import type { TripCardData } from "@/lib/db/trips";
+import { trackEvent } from "@/lib/analytics";
 
 const SESSION_KEY = "mystrip-bar-dismissed-v1";
 const HIDDEN_PREFIXES = ["/admin", "/auth", "/dashboard", "/trips/"];
@@ -17,20 +18,32 @@ function daysAway(startDate: string) {
 export default function StickyTripBar({ trip }: { trip: TripCardData | null }) {
   const pathname = usePathname();
   const [dismissed, setDismissed] = useState(true);
+  const shownRef = useRef(false);
 
   useEffect(() => {
     setDismissed(!!sessionStorage.getItem(SESSION_KEY));
   }, []);
 
-  if (!trip) return null;
-  if (HIDDEN_PREFIXES.some((p) => pathname.startsWith(p))) return null;
-  if (dismissed) return null;
+  const hidden =
+    !trip ||
+    HIDDEN_PREFIXES.some((p) => pathname.startsWith(p)) ||
+    dismissed ||
+    (trip ? trip.maxSlots - trip.bookedSlots <= 0 : true);
+
+  useEffect(() => {
+    if (!hidden && trip && !shownRef.current) {
+      shownRef.current = true;
+      trackEvent("sticky_bar_shown", { trip_slug: trip.slug });
+    }
+  }, [hidden, trip]);
+
+  if (!trip || hidden) return null;
 
   const seatsLeft = Math.max(0, trip.maxSlots - trip.bookedSlots);
   const days = daysAway(trip.startDate);
-  if (seatsLeft <= 0) return null;
 
   const close = () => {
+    trackEvent("sticky_bar_dismissed", { trip_slug: trip.slug });
     sessionStorage.setItem(SESSION_KEY, "1");
     setDismissed(true);
   };
@@ -61,6 +74,7 @@ export default function StickyTripBar({ trip }: { trip: TripCardData | null }) {
         </span>
         <Link
           href={`/trips/${trip.slug}`}
+          onClick={() => trackEvent("sticky_bar_click", { trip_slug: trip.slug })}
           className="flex items-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-bold text-white flex-shrink-0 transition-opacity hover:opacity-90"
           style={{ background: "#FF6016" }}
         >

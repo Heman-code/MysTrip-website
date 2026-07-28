@@ -7,6 +7,8 @@ import { getDbTripBySlug, getAllDbTripsForAdmin } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
 import JsonLd from "@/components/seo/JsonLd";
 import TripDetailClient from "./TripDetailClient";
+import TripViewTracker from "@/components/analytics/TripViewTracker";
+import TrackedLink from "@/components/analytics/TrackedLink";
 
 const BASE_URL = "https://www.mystrip.in";
 
@@ -102,6 +104,7 @@ export default async function TripDetailPage({ params }: Props) {
     <>
       <JsonLd data={eventSchema} />
       <JsonLd data={breadcrumbSchema} />
+      <TripViewTracker slug={trip.slug} title={trip.title} destination={trip.destination} price={basePrice} />
       {/* ── Hero ── */}
       <section className="relative h-[56vh] min-h-[380px] sm:h-[70vh] sm:min-h-[500px] flex flex-col justify-end overflow-hidden">
         <Image
@@ -308,13 +311,15 @@ export default async function TripDetailPage({ params }: Props) {
                   {/* CTA */}
                   <div className="px-6 pb-6">
                     {trip.registrationOpen ? (
-                      <Link
+                      <TrackedLink
                         href={`/trips/${trip.slug}/register`}
+                        eventName="register_start"
+                        eventParams={{ trip_slug: trip.slug, trip_title: trip.title, value: basePrice }}
                         className="block w-full text-center py-4 rounded-2xl font-bold text-white text-base transition-all hover:opacity-90 active:scale-95"
                         style={{ background: tagColor }}
                       >
                         Register Now →
-                      </Link>
+                      </TrackedLink>
                     ) : (
                       <a
                         href={`https://wa.me/918822068322?text=Hey! I want to join the ${encodeURIComponent(trip.title)} trip.`}
@@ -372,13 +377,15 @@ export default async function TripDetailPage({ params }: Props) {
           </p>
         </div>
         {trip.registrationOpen ? (
-          <Link
+          <TrackedLink
             href={`/trips/${trip.slug}/register`}
+            eventName="register_start"
+            eventParams={{ trip_slug: trip.slug, trip_title: trip.title, value: basePrice }}
             className="px-6 py-3 rounded-2xl font-bold text-white text-sm flex-shrink-0"
             style={{ background: tagColor }}
           >
             Register Now →
-          </Link>
+          </TrackedLink>
         ) : (
           <a
             href={`https://wa.me/918822068322?text=Hey! I want to join the ${encodeURIComponent(trip.title)} trip.`}

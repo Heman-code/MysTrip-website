@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { formatDateRange, daysUntil, nightCount } from "@/lib/data/trips";
 import { getDbUpcomingTrips, toTripCardData, type TripCardData } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
+import TrackedLink from "@/components/analytics/TrackedLink";
 
 // Sundarone brand colours
 // Navy:   #0b3d59
@@ -36,8 +37,10 @@ function TripCard({ trip }: { trip: TripCardData }) {
   const nights = nightCount(trip.startDate, trip.endDate);
   const days = daysUntil(trip.startDate);
   return (
-    <Link
+    <TrackedLink
       href={`/trips/${trip.slug}`}
+      eventName="trip_card_click"
+      eventParams={{ trip_slug: trip.slug, trip_title: trip.title, source: "sundarone" }}
       className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
     >
       <div className="relative h-44 overflow-hidden">
@@ -78,7 +81,7 @@ function TripCard({ trip }: { trip: TripCardData }) {
           </span>
         </div>
       </div>
-    </Link>
+    </TrackedLink>
   );
 }
 

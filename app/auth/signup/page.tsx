@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 const TRIBE_ROLES = [
   { id: "explorer", label: "The Explorer", emoji: "🗺️", desc: "First time here. Ready to find your people." },
@@ -61,6 +62,7 @@ export default function SignupPage() {
       });
       if (result?.error) { setError("Account created but login failed. Try logging in."); setLoading(false); return; }
 
+      trackEvent("sign_up", { method: "credentials" });
       if (data.coupon) setCoupon(data.coupon);
       setDone(true);
     } catch {

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 function LoginForm() {
   const router = useRouter();
@@ -30,6 +31,7 @@ function LoginForm() {
       if (result?.error) {
         setError("Invalid email or password. Try again.");
       } else {
+        trackEvent("login", { method: "credentials" });
         router.push(callbackUrl);
         router.refresh();
       }

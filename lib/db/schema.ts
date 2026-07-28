@@ -187,6 +187,11 @@ export const registrations = pgTable("registrations", {
   paymentScreenshot: text("payment_screenshot"), // base64 data URL, verified manually by an admin
   referralCode:      varchar("referral_code", { length: 50 }),
 
+  // GA4 client id captured at submission time, so the server-side "purchase"
+  // event fired when an admin confirms payment can be attributed to the
+  // same browser session as the rest of that user's funnel.
+  gaClientId:      varchar("ga_client_id", { length: 100 }),
+
   createdAt:       timestamp("created_at").defaultNow(),
   updatedAt:       timestamp("updated_at").defaultNow(),
 }, (t) => ({

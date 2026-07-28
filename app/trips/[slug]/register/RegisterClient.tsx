@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Check, Copy, Upload, ArrowRight, ShieldCheck, Tag, Sparkles, X } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 interface TripSummary {
   slug: string;
@@ -94,6 +95,7 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
       }
       setAppliedCoupon(data.coupon);
       setCouponInput("");
+      trackEvent("coupon_applied", { trip_slug: trip.slug, coupon_code: data.coupon.code, discount_percent: data.coupon.discountPercent });
     } catch {
       setCouponError("Network error. Please try again.");
     } finally {
@@ -144,6 +146,7 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
         return;
       }
       setQuote(data);
+      trackEvent("begin_checkout", { trip_slug: trip.slug, trip_title: trip.title, currency: "INR", value: data.finalAmount });
       if (data.discountAmount > 0) {
         setShowCelebration(true);
         setTimeout(() => setShowCelebration(false), 3000);
@@ -199,6 +202,15 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
         return;
       }
       setDone(true);
+      // Registration is pending admin payment verification — the definitive
+      // "purchase" conversion fires server-side once an admin confirms it,
+      // so revenue reporting only counts money that actually came in.
+      trackEvent("registration_submitted", {
+        trip_slug: trip.slug,
+        trip_title: trip.title,
+        currency: "INR",
+        value: quote?.finalAmount ?? trip.basePrice,
+      });
     } catch {
       setError("Network error. Please try again.");
       setLoading(false);

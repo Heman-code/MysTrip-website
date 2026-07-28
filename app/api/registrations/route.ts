@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { coupons, registrations, trips, users } from "@/lib/db/schema";
 import { getDbTripBySlug } from "@/lib/db/trips";
 import { computeDiscount } from "@/lib/coupons";
+import { extractGaClientId } from "@/lib/ga4-server";
 
 const MAX_SCREENSHOT_BASE64_LENGTH = 5_600_000; // ~4MB decoded
 
@@ -86,6 +87,8 @@ export async function POST(req: NextRequest) {
     await db.update(users).set({ fullName: fullName.trim() }).where(eq(users.id, session.user.id));
   }
 
+  const gaClientId = extractGaClientId(req.cookies.get("_ga")?.value);
+
   const [registration] = await db
     .insert(registrations)
     .values({
@@ -100,6 +103,7 @@ export async function POST(req: NextRequest) {
       guardianPhone: guardianPhone.trim(),
       collegeRegNumber: collegeRegNumber.trim(),
       paymentScreenshot,
+      gaClientId,
     })
     .returning({ id: registrations.id });
 

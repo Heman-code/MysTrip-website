@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { formatDateRange, daysUntil, nightCount } from "@/lib/data/trips";
 import type { TripCardData } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 type FilterKey = "all" | "trek" | "day" | "weekend" | "multi";
 
@@ -37,6 +38,7 @@ function TripCard({ trip }: { trip: TripCardData }) {
   return (
     <Link
       href={`/trips/${trip.slug}`}
+      onClick={() => trackEvent("trip_card_click", { trip_slug: trip.slug, trip_title: trip.title, source: "trips_list" })}
       className="group flex gap-0 sm:flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
     >
       {/* Photo */}

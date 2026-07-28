@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { formatDateRange } from "@/lib/data/trips";
 import type { TripCardData } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 const diffColors: Record<string, { bg: string; text: string }> = {
   Easy:     { bg: "#dcfce7", text: "#166534" },
@@ -14,7 +15,7 @@ const diffColors: Record<string, { bg: string; text: string }> = {
   Hard:     { bg: "#fee2e2", text: "#991b1b" },
 };
 
-function TripCard({ trip, delay }: { trip: TripCardData; delay: number }) {
+function TripCard({ trip, delay, position }: { trip: TripCardData; delay: number; position: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -39,6 +40,7 @@ function TripCard({ trip, delay }: { trip: TripCardData; delay: number }) {
     >
       <Link
         href={`/trips/${trip.slug}`}
+        onClick={() => trackEvent("trip_card_click", { trip_slug: trip.slug, trip_title: trip.title, source: "home", position })}
         className="group block rounded-2xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 bg-white"
       >
         {/* Cover photo */}
@@ -147,7 +149,7 @@ export default function UpcomingTrips({ featuredTrips, totalTripsCount }: { feat
         {/* Swipeable on mobile, grid from md up */}
         <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-3 scrollbar-none md:grid md:grid-cols-2 md:gap-6 lg:grid-cols-3 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
           {featuredTrips.map((trip, i) => (
-            <TripCard key={trip.id} trip={trip} delay={i * 100} />
+            <TripCard key={trip.id} trip={trip} delay={i * 100} position={i} />
           ))}
 
           {/* "See all" filler card */}

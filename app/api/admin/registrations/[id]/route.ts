@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { registrations, trips } from "@/lib/db/schema";
+import { sendServerEvent } from "@/lib/ga4-server";
 
 export async function PATCH(
   req: NextRequest,
@@ -22,7 +23,12 @@ export async function PATCH(
   }
 
   const [registration] = await db
-    .select({ tripId: registrations.tripId, bookingStatus: registrations.bookingStatus })
+    .select({
+      tripId: registrations.tripId,
+      bookingStatus: registrations.bookingStatus,
+      amount: registrations.amount,
+      gaClientId: registrations.gaClientId,
+    })
     .from(registrations)
     .where(eq(registrations.id, id))
     .limit(1);
@@ -38,6 +44,22 @@ export async function PATCH(
     .update(registrations)
     .set({ bookingStatus: action === "confirm" ? "confirmed" : "canceled" })
     .where(eq(registrations.id, id));
+
+  if (action === "confirm") {
+    const [trip] = await db
+      .select({ slug: trips.slug, title: trips.title })
+      .from(trips)
+      .where(eq(trips.id, registration.tripId))
+      .limit(1);
+    // The definitive revenue conversion — fired here (not at submission time)
+    // because this is the moment an admin actually verified the payment.
+    await sendServerEvent(registration.gaClientId, "purchase", {
+      transaction_id: id,
+      currency: "INR",
+      value: Number(registration.amount),
+      items: trip ? [{ item_id: trip.slug, item_name: trip.title, price: Number(registration.amount) }] : [],
+    });
+  }
 
   if (action === "reject") {
     await db
