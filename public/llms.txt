@@ -1,0 +1,17 @@
+# MysTrip
+
+> MysTrip is a tribe-led youth travel community based in Jaipur, India, running treks, day trips, weekend escapes, and multi-day trips for college students — including Manipal University Jaipur (MUJ) students and the wider Jaipur student crowd. Not a tour. Not a package. A bunch of strangers who become your people.
+
+## Key pages
+
+- [Home](https://www.mystrip.in/): overview and the next upcoming trips
+- [Trips](https://www.mystrip.in/trips): full list of upcoming treks, day trips, weekend escapes, and multi-day trips
+- [Sundarone Tribe](https://www.mystrip.in/sundarone): travel community exclusively for Sundarone Hostel residents near MUJ
+- [About](https://www.mystrip.in/about): who MysTrip is and what makes it different
+- [Blog](https://www.mystrip.in/blog): trip stories and travel guides
+
+## Contact
+
+- Email: team@mystrip.in
+- Phone: +91 88220 68322
+- Based in Jaipur, Rajasthan, India
