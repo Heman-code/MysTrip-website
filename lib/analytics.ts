@@ -1,19 +1,32 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+  }
+}
 
 type EventParams = Record<string, unknown>;
 
-// sendGAEvent silently warns (never throws) if GA hasn't loaded yet, so this
-// is always safe to call even before the Measurement ID is configured.
+// Pushes straight onto window.dataLayer — the same array gtag.js itself
+// drains once it loads. This works even before gtag.js has finished
+// loading (events just queue up), so it's safe regardless of how late the
+// script tag is deferred, and doesn't depend on any particular loader
+// component having already run.
+function push(...args: unknown[]) {
+  if (typeof window === "undefined") return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(args);
+}
+
 export function trackEvent(name: string, params?: EventParams) {
-  sendGAEvent("event", name, params ?? {});
+  push("event", name, params ?? {});
 }
 
 // Ties all events in this browser to a stable user id once someone is
 // logged in, so their journey stays connected across sessions/devices.
 export function setAnalyticsUser(userId: string | null) {
-  sendGAEvent("set", { user_id: userId ?? "" });
+  push("set", { user_id: userId ?? "" });
 }
 
 export function trackPurchase(params: {

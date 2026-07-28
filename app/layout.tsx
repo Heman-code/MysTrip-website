@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -114,7 +114,25 @@ export default async function RootLayout({
         </Providers>
       </body>
       {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        <>
+          {/* lazyOnload: analytics has zero business competing with LCP/FCP
+              for main-thread or network time. trackEvent() already pushes
+              straight onto window.dataLayer, so events fire and queue fine
+              even before this script has loaded — gtag.js just drains the
+              queue once it arrives. */}
+          <Script
+            id="ga-init"
+            strategy="lazyOnload"
+            dangerouslySetInnerHTML={{
+              __html: `window.dataLayer=window.dataLayer||[];function gtag(){window.dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());gtag('config','${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');`,
+            }}
+          />
+          <Script
+            id="ga-src"
+            strategy="lazyOnload"
+            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+          />
+        </>
       )}
     </html>
   );
