@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     })
     .returning({ id: trips.id, slug: trips.slug });
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   revalidatePath("/trips");
   revalidatePath("/sundarone");
 

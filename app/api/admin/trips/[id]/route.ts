@@ -52,7 +52,7 @@ export async function PATCH(
 
   await db.update(trips).set(updates).where(eq(trips.id, id));
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   revalidatePath("/trips");
   revalidatePath("/sundarone");
   revalidatePath(`/trips/${existing.slug}`);

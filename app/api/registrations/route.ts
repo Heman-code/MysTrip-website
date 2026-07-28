@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     .set({ bookedSlots: sql`${trips.bookedSlots} + 1` })
     .where(eq(trips.id, dbTripId));
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   revalidatePath("/trips");
   revalidatePath("/sundarone");
   revalidatePath(`/trips/${trip.slug}`);

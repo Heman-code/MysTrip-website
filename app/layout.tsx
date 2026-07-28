@@ -4,6 +4,9 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Providers from "@/components/Providers";
 import JsonLd from "@/components/seo/JsonLd";
+import UpcomingTripsPopup from "@/components/layout/UpcomingTripsPopup";
+import StickyTripBar from "@/components/layout/StickyTripBar";
+import { getDbUpcomingTrips, toTripCardData } from "@/lib/db/trips";
 
 const organizationSchema = {
   "@context": "https://schema.org",
@@ -74,11 +77,13 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.mystrip.in"),
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const upcomingTrips = (await getDbUpcomingTrips(undefined, 2)).map(toTripCardData);
+
   return (
     <html lang="en">
       <head>
@@ -103,6 +108,8 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+          <UpcomingTripsPopup trips={upcomingTrips} />
+          <StickyTripBar trip={upcomingTrips[0] ?? null} />
         </Providers>
       </body>
     </html>

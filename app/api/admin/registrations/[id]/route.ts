@@ -46,7 +46,7 @@ export async function PATCH(
       .where(eq(trips.id, registration.tripId));
 
     const [trip] = await db.select({ slug: trips.slug }).from(trips).where(eq(trips.id, registration.tripId)).limit(1);
-    revalidatePath("/");
+    revalidatePath("/", "layout");
     revalidatePath("/trips");
     revalidatePath("/sundarone");
     if (trip) revalidatePath(`/trips/${trip.slug}`);
