@@ -74,7 +74,7 @@ export default async function TripDetailPage({ params }: Props) {
     description: trip.shortDescription ?? trip.description ?? undefined,
     image: coverImage.startsWith("http") ? coverImage : `${BASE_URL}${coverImage}`,
     touristType: "Students",
-    provider: { "@type": "TravelAgency", name: "MysTrip", url: BASE_URL },
+    provider: { "@type": "Organization", name: "MysTrip", url: BASE_URL },
     itinerary: {
       "@type": "Place",
       name: trip.destination,

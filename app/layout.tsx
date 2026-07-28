@@ -11,13 +11,21 @@ import { getDbUpcomingTrips, toTripCardData } from "@/lib/db/trips";
 
 const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "TravelAgency",
+  // Deliberately not "TravelAgency" — MysTrip is a community, not a
+  // commercial trip-booking business, and the structured data shouldn't
+  // say otherwise.
+  "@type": "Organization",
   name: "MysTrip",
   alternateName: "MysTrip Travel Tribe",
   url: "https://www.mystrip.in",
   logo: "https://www.mystrip.in/logos/primary-logo.png",
   description:
-    "MysTrip is a tribe-led youth travel community for college students in Jaipur, including Manipal University Jaipur (MUJ). Treks, day explorations, weekend escapes, and semester trips.",
+    "MysTrip is the original tribe-led youth travel community at Manipal University Jaipur (MUJ), founded 1st March 2025. Not a travel agency — a student-run community that designs shared trekking and travel experiences to turn strangers into a tribe.",
+  foundingDate: "2025-03-01",
+  founder: [
+    { "@type": "Person", name: "Hemant Kumar Sharma" },
+    { "@type": "Person", name: "Arpita Dutta" },
+  ],
   email: "team@mystrip.in",
   telephone: "+91-8822068322",
   address: {

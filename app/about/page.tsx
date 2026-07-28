@@ -4,9 +4,9 @@ import Link from "next/link";
 import { ArrowRight, Compass, HeartHandshake, ShieldCheck, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "About | MysTrip",
+  title: "Our Story | MysTrip",
   description:
-    "MysTrip is a tribe-led travel community for college students and young professionals, built out of Jaipur for Manipal University Jaipur students and beyond. Here's the story of why we exist, and who we're building it for.",
+    "MysTrip is the original travel tribe community at Manipal University Jaipur, founded 1st March 2025 by Hemant Kumar Sharma and Arpita Dutta. Not a tour agency, not a package seller — the story of how a solo gap-year trip became MUJ's first travel community.",
   alternates: { canonical: "https://www.mystrip.in/about" },
 };
 
@@ -61,7 +61,7 @@ const galleryPhotos = [
 ];
 
 const stats = [
-  { num: "2000+", label: "Tribe Members" },
+  { num: "900+", label: "Tribe Members" },
   { num: "2", label: "National Awards" },
   { num: "12,500 ft", label: "Summited" },
   { num: "17+", label: "Trips Done" },
@@ -145,7 +145,62 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Chapter 2 — what we built */}
+      {/* Chapter 2 — the origin story */}
+      <section className="py-16 sm:py-24" style={{ background: "#01574A" }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-8 md:gap-14 items-center">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#FFB001" }}>
+              Chapter Two
+            </p>
+            <h2
+              className="text-2xl sm:text-4xl font-bold text-white leading-tight mb-5"
+              style={{ fontFamily: "'Clash Display', sans-serif" }}
+            >
+              The 1st of March.
+            </h2>
+            <div className="space-y-4 text-sm sm:text-base text-white/70 leading-relaxed">
+              <p>
+                Our founder, Hemant, took a gap year after 12th — one year, solo, across India.
+                Northeast to Rajasthan, buses to trains to whatever got him there next. Somewhere in
+                that year, stuck without a plan more than once, the idea for MysTrip started forming.
+              </p>
+              <p>
+                Then college happened. Classes, assignments, the usual loop — until he told a
+                classmate, Arpita, about the idea. She&apos;s the reason it didn&apos;t stay a
+                gap-year story. They pitched it at AIC-MUJ in October 2024 and got pre-incubated.
+              </p>
+              <p>
+                The first team didn&apos;t last. By January 2025 it was back down to two people with
+                more conviction than tech skills. So instead of building an app nobody had asked for
+                yet, they did something smaller and scarier: planned an actual trip, and asked people
+                to trust them with it.
+              </p>
+              <p>
+                Hatni Kund, 1st March 2025 — a sunrise trek in the Aravalis, on Arpita&apos;s
+                birthday. The website was barely a form. Three registrations in three hours, then
+                silence for twelve — and those three asked for refunds. They got them. Five more
+                hours of nothing.
+              </p>
+              <p className="font-semibold text-white">
+                Then it flipped: 50 registrations in 4 hours, sold out in a day. 50 strangers trusted
+                two people and a very basic website, showed up at sunrise, and that trip became
+                MysTrip&apos;s real birthday.
+              </p>
+            </div>
+          </div>
+          <div className="relative rounded-2xl overflow-hidden aspect-[4/5]">
+            <Image
+              src="/trips/hatni-kund.png"
+              alt="The very first MysTrip trek — Hatni Kund, 1st March 2025"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Chapter 3 — what we built */}
       <section className="py-16 sm:py-24" style={{ background: "#0B1210" }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-8 md:gap-14 items-center">
           <div className="relative rounded-2xl overflow-hidden aspect-[4/5] order-2 md:order-1">
@@ -159,7 +214,7 @@ export default function AboutPage() {
           </div>
           <div className="order-1 md:order-2">
             <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#FFB001" }}>
-              Chapter Two
+              Chapter Three
             </p>
             <h2
               className="text-2xl sm:text-4xl font-bold text-white leading-tight mb-5"
@@ -181,6 +236,56 @@ export default function AboutPage() {
                 <p className="text-xs font-bold uppercase tracking-wide mb-1 text-white/50">What we&apos;re not</p>
                 <p className="text-sm text-white/50">A checklist-of-sights agency, or another Instagram travel page.</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The Difference — business vs. tribe */}
+      <section className="py-16 sm:py-24" style={{ background: "#F9F7F4" }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#FF6016" }}>
+            The Difference
+          </p>
+          <h2
+            className="text-2xl sm:text-4xl font-bold text-gray-900 leading-tight mb-8 max-w-2xl"
+            style={{ fontFamily: "'Clash Display', sans-serif" }}
+          >
+            We were never in the business of selling trips.
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8 md:gap-14 items-start">
+            <div className="space-y-4 text-sm sm:text-base text-gray-600 leading-relaxed">
+              <p>
+                MysTrip started the whole &quot;travel community&quot; thing at Manipal — before the
+                20-odd travel pages that showed up after us existed. We&apos;re not a tour agency. We
+                don&apos;t sell packages, and we&apos;re not chasing the same five Instagram-famous
+                itineraries everyone else runs.
+              </p>
+              <p>
+                Anyone can plan a trip. Book a bus, pick a place, done. MysTrip designs an
+                experience — the difference is what happens between the stops, not the stops
+                themselves. It was never about the number of seats we sold. It&apos;s about watching
+                our people actually be happy, out there, together.
+              </p>
+              <p className="font-semibold text-gray-900">
+                If someone&apos;s using our name and it doesn&apos;t feel like this — it&apos;s not us.
+              </p>
+            </div>
+            <div
+              className="rounded-2xl p-6 sm:p-8"
+              style={{ background: "rgba(255,96,22,0.06)", border: "1px solid rgba(255,96,22,0.15)" }}
+            >
+              <p
+                className="text-3xl sm:text-4xl font-bold mb-3"
+                style={{ fontFamily: "'Clash Display', sans-serif", color: "#FF6016" }}
+              >
+                15 strangers.
+              </p>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                On our last Himalayan trek, all 15 trekkers went up the mountain as strangers. Six
+                months later, they&apos;re still eating together in the hostel mess. That&apos;s not
+                a coincidence — that&apos;s the whole point of a tribe.
+              </p>
             </div>
           </div>
         </div>

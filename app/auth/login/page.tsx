@@ -70,7 +70,7 @@ function LoginForm() {
             Your tribe<br />is out there.
           </p>
           <div className="flex flex-wrap gap-3">
-            {["2000+ Tribe Members", "8 States Explored", "2 National Awards"].map((s) => (
+            {["900+ Tribe Members", "8 States Explored", "2 National Awards"].map((s) => (
               <span
                 key={s}
                 className="px-4 py-2 rounded-full text-sm font-semibold text-white"
@@ -188,7 +188,7 @@ function LoginForm() {
           >
             <div>
               <p className="text-sm font-bold text-white">New to MysTrip?</p>
-              <p className="text-xs text-white/40 mt-0.5">Join 2000+ tribe members across India.</p>
+              <p className="text-xs text-white/40 mt-0.5">Join 900+ tribe members across India.</p>
             </div>
             <Link
               href="/auth/signup"
