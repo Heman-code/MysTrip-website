@@ -1,5 +1,37 @@
 @import "tailwindcss";
 
+/* Self-hosted (was api.fontshare.com) — third-party font CDN latency was
+   directly delaying LCP on the hero headline; self-hosting removes that
+   dependency entirely instead of just deferring around it. */
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display/clash-display-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display/clash-display-500.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display/clash-display-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display/clash-display-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+}
+
 :root {
   --sunset: #FF6016;
   --golden: #FFB001;

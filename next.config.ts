@@ -15,10 +15,10 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://checkout.razorpay.com https://www.googletagmanager.com",
-      "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.bunny.net",
-      "font-src 'self' https://api.fontshare.com https://fonts.bunny.net",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self'",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://api.fontshare.com https://fonts.bunny.net wss: https://www.google-analytics.com https://www.googletagmanager.com",
+      "connect-src 'self' wss: https://www.google-analytics.com https://www.googletagmanager.com",
       "frame-src https://checkout.razorpay.com",
       "object-src 'none'",
       "base-uri 'self'",
