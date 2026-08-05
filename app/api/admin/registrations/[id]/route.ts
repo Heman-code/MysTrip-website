@@ -3,7 +3,7 @@ import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { registrations, trips } from "@/lib/db/schema";
+import { payouts, registrations, trips } from "@/lib/db/schema";
 import { sendServerEvent } from "@/lib/ga4-server";
 
 export async function PATCH(
@@ -28,6 +28,8 @@ export async function PATCH(
       bookingStatus: registrations.bookingStatus,
       amount: registrations.amount,
       gaClientId: registrations.gaClientId,
+      referredAmbassadorId: registrations.referredAmbassadorId,
+      referralCommissionSnapshot: registrations.referralCommissionSnapshot,
     })
     .from(registrations)
     .where(eq(registrations.id, id))
@@ -59,6 +61,18 @@ export async function PATCH(
       value: Number(registration.amount),
       items: trip ? [{ item_id: trip.slug, item_name: trip.title, price: Number(registration.amount) }] : [],
     });
+
+    // Same reasoning for the ambassador payout: only created once the payment
+    // is actually verified, using the commission snapshotted at booking time
+    // (not the ambassador's possibly-since-edited live terms).
+    if (registration.referredAmbassadorId && registration.referralCommissionSnapshot !== null) {
+      await db.insert(payouts).values({
+        ambassadorId: registration.referredAmbassadorId,
+        registrationId: id,
+        amount: registration.referralCommissionSnapshot,
+        status: "pending",
+      });
+    }
   }
 
   if (action === "reject") {

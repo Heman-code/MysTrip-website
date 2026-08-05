@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Star, Clock, ArrowRight, Send } from "lucide-react";
+import { MapPin, Star, Clock, ArrowRight, Send, Copy, Check } from "lucide-react";
+import { REFERRAL_COOKIE } from "@/lib/referral-cookie";
 
 interface PastTrip {
   id: string;
@@ -20,6 +21,26 @@ interface ReviewableTrip {
   tripDate: string;
 }
 
+interface AmbassadorPayout {
+  id: string;
+  amount: number;
+  status: string;
+  paidAt: string | null;
+  createdAt: string;
+}
+
+interface AmbassadorStats {
+  referralCode: string;
+  discountType: string;
+  discountValue: number;
+  discountMaxCap: number | null;
+  clicks: number;
+  bookingsAttributed: number;
+  revenue: number;
+  payoutPending: number;
+  payoutHistory: AmbassadorPayout[];
+}
+
 interface Props {
   user: {
     name: string;
@@ -30,16 +51,45 @@ interface Props {
   pastTrips: PastTrip[];
   reviewableTrips: ReviewableTrip[];
   reviewsLeftCount: number;
+  ambassador: AmbassadorStats | null;
 }
 
-const tabs = ["Overview", "My Trips", "Leave a Review"];
+const BASE_TABS = ["Overview", "My Trips", "Leave a Review"];
 
-export default function DashboardClient({ user, pastTrips, reviewableTrips, reviewsLeftCount }: Props) {
+// The cookie is deliberately not httpOnly, read here client-side. Cookies
+// aren't a React-observable store, so there's nothing to subscribe to — the
+// snapshot is just read once per render, which is all this needs.
+function subscribeNoop() {
+  return () => {};
+}
+function getReferralCookieSnapshot() {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${REFERRAL_COOKIE}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+function getReferralCookieServerSnapshot() {
+  return null;
+}
+
+export default function DashboardClient({ user, pastTrips, reviewableTrips, reviewsLeftCount, ambassador }: Props) {
+  const tabs = ambassador ? [...BASE_TABS, "Ambassador"] : BASE_TABS;
+  const ambassadorTabIndex = tabs.length - 1;
   const [activeTab, setActiveTab] = useState(0);
   const [review, setReview] = useState({ registrationId: "", rating: 0, text: "" });
   const [reviewSent, setReviewSent] = useState(false);
+  const [copiedReferral, setCopiedReferral] = useState(false);
+
+  // So the WhatsApp fallback CTA can carry the code for the founder to log manually.
+  const referralCode = useSyncExternalStore(subscribeNoop, getReferralCookieSnapshot, getReferralCookieServerSnapshot);
+  const whatsappText = (base: string) => (referralCode ? `${base} — Ref: ${referralCode}` : base);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState("");
+
+  const copyReferralLink = async () => {
+    if (!ambassador) return;
+    await navigator.clipboard.writeText(`${window.location.origin}?ref=${ambassador.referralCode}`);
+    setCopiedReferral(true);
+    setTimeout(() => setCopiedReferral(false), 2000);
+  };
 
   const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -257,7 +307,7 @@ export default function DashboardClient({ user, pastTrips, reviewableTrips, revi
                 <div className="rounded-2xl p-6 text-center mt-4" style={{ background: "#0B1210" }}>
                   <p className="text-white font-bold mb-1" style={{ fontFamily: "'Clash Display', sans-serif" }}>Ready for the next one?</p>
                   <p className="text-white/40 text-sm mb-4">Online booking is almost here. For now, grab your spot on WhatsApp.</p>
-                  <a href="https://wa.me/918822068322?text=Hey! I want to book a trip with MysTrip."
+                  <a href={`https://wa.me/918822068322?text=${encodeURIComponent(whatsappText("Hey! I want to book a trip with MysTrip."))}`}
                     target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-white text-sm transition-all hover:scale-105"
                     style={{ background: "#25D366" }}>
@@ -279,7 +329,7 @@ export default function DashboardClient({ user, pastTrips, reviewableTrips, revi
                 <p className="text-white/40 text-sm mb-6 max-w-md mx-auto">
                   Reach out on WhatsApp to reserve your spot.
                 </p>
-                <a href="https://wa.me/918822068322?text=Hey! I want to book a trip with MysTrip."
+                <a href={`https://wa.me/918822068322?text=${encodeURIComponent(whatsappText("Hey! I want to book a trip with MysTrip."))}`}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-white transition-all hover:scale-105"
                   style={{ background: "#25D366" }}>
@@ -388,6 +438,79 @@ export default function DashboardClient({ user, pastTrips, reviewableTrips, revi
                 </form>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Ambassador tab — read-only transparency view, no editing */}
+        {ambassador && activeTab === ambassadorTabIndex && (
+          <div className="space-y-6">
+            <div className="rounded-2xl p-6" style={{ background: "#0B1210" }}>
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#FF6016" }}>Your Referral Code</p>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-2xl font-bold text-white" style={{ fontFamily: "'Clash Display', sans-serif" }}>{ambassador.referralCode}</p>
+                <button
+                  onClick={copyReferralLink}
+                  className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full transition-all"
+                  style={{ background: copiedReferral ? "rgba(16,185,129,0.15)" : "rgba(255,96,22,0.12)", color: copiedReferral ? "#10b981" : "#FF6016" }}
+                >
+                  {copiedReferral ? <Check size={13} /> : <Copy size={13} />}
+                  {copiedReferral ? "Link Copied" : "Copy Shareable Link"}
+                </button>
+              </div>
+              <p className="text-white/40 text-sm mt-3">
+                {ambassador.discountType === "flat"
+                  ? `Friends who use your code get ₹${ambassador.discountValue} off.`
+                  : `Friends who use your code get ${ambassador.discountValue}% off${ambassador.discountMaxCap ? `, up to ₹${ambassador.discountMaxCap}` : ""}.`}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { num: String(ambassador.clicks), label: "Link Clicks" },
+                { num: String(ambassador.bookingsAttributed), label: "Bookings" },
+                { num: `₹${ambassador.revenue.toLocaleString("en-IN")}`, label: "Revenue Generated" },
+                { num: `₹${ambassador.payoutPending.toLocaleString("en-IN")}`, label: "Payout Owed" },
+              ].map((s) => (
+                <div key={s.label} className="bg-white rounded-2xl p-5 text-center border border-gray-100">
+                  <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "'Clash Display', sans-serif" }}>{s.num}</p>
+                  <p className="text-xs text-gray-400 mt-1">{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h2 className="font-bold text-gray-900" style={{ fontFamily: "'Clash Display', sans-serif" }}>Payout History</h2>
+              </div>
+              {ambassador.payoutHistory.length === 0 ? (
+                <p className="px-6 py-8 text-sm text-gray-400 text-center">No payouts yet — they&apos;ll show up here once a referred booking is confirmed.</p>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {ambassador.payoutHistory.map((p) => (
+                    <div key={p.id} className="px-6 py-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">₹{p.amount.toLocaleString("en-IN")}</p>
+                        <p className="text-xs text-gray-400">
+                          {p.status === "paid" && p.paidAt
+                            ? `Paid ${new Date(p.paidAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+                            : `Logged ${new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`}
+                        </p>
+                      </div>
+                      <span
+                        className="text-[10px] font-bold px-2.5 py-1 rounded-full capitalize"
+                        style={p.status === "paid" ? { background: "rgba(16,185,129,0.1)", color: "#10b981" } : { background: "rgba(255,176,1,0.12)", color: "#FFB001" }}
+                      >
+                        {p.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-gray-400 text-center">
+              Updated by the MysTrip team — clicks, bookings, and payouts are logged as they&apos;re verified, not tracked live.
+            </p>
           </div>
         )}
       </div>

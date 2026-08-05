@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { coupons, registrations, trips, users } from "@/lib/db/schema";
 import { getDbTripBySlug } from "@/lib/db/trips";
 import { computeDiscount } from "@/lib/coupons";
+import { computeAmbassadorDiscount, computeCommission } from "@/lib/ambassadors";
+import { getActiveAmbassadorByCode } from "@/lib/referral";
 import { extractGaClientId } from "@/lib/ga4-server";
 
 const MAX_SCREENSHOT_BASE64_LENGTH = 5_600_000; // ~4MB decoded
@@ -42,22 +44,48 @@ export async function POST(req: NextRequest) {
   let finalAmount = Number(trip.basePrice);
   let discountAmount = 0;
   let coupon: typeof coupons.$inferSelect | null = null;
+  let referralCode: string | null = null;
+  let referredAmbassadorId: string | null = null;
+  let referralCommissionSnapshot: number | null = null;
+
   if (typeof couponCode === "string" && couponCode.trim()) {
     const [found] = await db
       .select()
       .from(coupons)
       .where(eq(coupons.code, couponCode.trim().toUpperCase()))
       .limit(1);
-    if (!found || found.userId !== session.user.id || found.isUsed) {
-      return NextResponse.json(
-        { error: "That coupon is no longer valid. Please go back and reapply, or continue without it." },
-        { status: 409 }
-      );
+
+    if (found) {
+      if (found.userId !== session.user.id || found.isUsed) {
+        return NextResponse.json(
+          { error: "That coupon is no longer valid. Please go back and reapply, or continue without it." },
+          { status: 409 }
+        );
+      }
+      coupon = found;
+      const result = computeDiscount(Number(trip.basePrice), found.discountPercent, Number(found.maxDiscountAmount));
+      discountAmount = result.discountAmount;
+      finalAmount = result.finalAmount;
+    } else {
+      // Not a coupon — the same input doubles as an ambassador referral code.
+      const ambassador = await getActiveAmbassadorByCode(couponCode);
+      if (!ambassador) {
+        return NextResponse.json(
+          { error: "That code is no longer valid. Please go back and reapply, or continue without it." },
+          { status: 409 }
+        );
+      }
+      const result = computeAmbassadorDiscount(Number(trip.basePrice), ambassador);
+      discountAmount = result.discountAmount;
+      finalAmount = result.finalAmount;
+      referralCode = ambassador.referralCode;
+      referredAmbassadorId = ambassador.id;
+      // Snapshotted now, at the ambassador's terms as of this booking — if the
+      // admin edits commission terms before this registration is confirmed,
+      // the payout created at confirm time must still reflect what applied
+      // when the customer actually booked, not whatever is live later.
+      referralCommissionSnapshot = computeCommission(Number(trip.basePrice), result.finalAmount, ambassador);
     }
-    coupon = found;
-    const result = computeDiscount(Number(trip.basePrice), found.discountPercent, Number(found.maxDiscountAmount));
-    discountAmount = result.discountAmount;
-    finalAmount = result.finalAmount;
   }
 
   const requiredFields = { whatsappNumber, guardianPhone, collegeRegNumber };
@@ -117,6 +145,9 @@ export async function POST(req: NextRequest) {
       discountApplied: discountAmount > 0,
       discountAmount: discountAmount.toString(),
       couponId: coupon?.id ?? null,
+      referralCode,
+      referredAmbassadorId,
+      referralCommissionSnapshot: referralCommissionSnapshot !== null ? referralCommissionSnapshot.toString() : null,
       whatsappNumber: whatsappNumber.trim(),
       guardianPhone: guardianPhone.trim(),
       collegeRegNumber: collegeRegNumber.trim(),

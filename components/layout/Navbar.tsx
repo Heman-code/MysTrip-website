@@ -8,6 +8,7 @@ import { useSession, signOut } from "next-auth/react";
 
 const links = [
   { label: "Trips", href: "/trips" },
+  { label: "Plan Jaipur", href: "/plan/jaipur" },
   { label: "Sundarone", href: "/sundarone" },
   { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },

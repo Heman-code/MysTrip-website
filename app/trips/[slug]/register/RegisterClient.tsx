@@ -23,12 +23,20 @@ interface CouponInfo {
   maxDiscountAmount: number;
 }
 
+interface AmbassadorDiscountInfo {
+  code: string;
+  discountType: "flat" | "percentage";
+  discountValue: number;
+  discountMaxCap: number | null;
+}
+
 interface Quote {
   originalAmount: number;
   discountAmount: number;
   finalAmount: number;
   qrDataUrl: string;
   coupon: { code: string; discountPercent: number } | null;
+  ambassador: { code: string } | null;
 }
 
 interface Props {
@@ -67,11 +75,22 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
-  // Coupon (applied on step 0)
+  // Coupon or ambassador referral code — same input, mutually exclusive (applied on step 0)
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<CouponInfo | null>(null);
+  const [appliedAmbassador, setAppliedAmbassador] = useState<AmbassadorDiscountInfo | null>(null);
   const [couponApplying, setCouponApplying] = useState(false);
   const [couponError, setCouponError] = useState("");
+
+  const appliedCode = appliedCoupon?.code ?? appliedAmbassador?.code;
+
+  // Optimistic display-only discount for the applied ambassador code — the
+  // server (quote/registrations routes) always recomputes this authoritatively.
+  const ambassadorDisplayDiscount = (basePrice: number, a: AmbassadorDiscountInfo) => {
+    const raw = a.discountType === "flat" ? a.discountValue : (basePrice * a.discountValue) / 100;
+    const capped = a.discountType === "percentage" && a.discountMaxCap != null ? Math.min(raw, a.discountMaxCap) : raw;
+    return Math.min(Math.max(Math.round(capped), 0), basePrice);
+  };
 
   // Quote + celebration (fetched entering step 1)
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -93,9 +112,16 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
         setCouponError(data.error ?? "Couldn't apply that code.");
         return;
       }
-      setAppliedCoupon(data.coupon);
+      if (data.coupon) {
+        setAppliedCoupon(data.coupon);
+        setAppliedAmbassador(null);
+        trackEvent("coupon_applied", { trip_slug: trip.slug, coupon_code: data.coupon.code, discount_percent: data.coupon.discountPercent });
+      } else if (data.ambassador) {
+        setAppliedAmbassador(data.ambassador);
+        setAppliedCoupon(null);
+        trackEvent("referral_code_applied", { trip_slug: trip.slug, referral_code: data.ambassador.code });
+      }
       setCouponInput("");
-      trackEvent("coupon_applied", { trip_slug: trip.slug, coupon_code: data.coupon.code, discount_percent: data.coupon.discountPercent });
     } catch {
       setCouponError("Network error. Please try again.");
     } finally {
@@ -138,7 +164,7 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
       const res = await fetch("/api/registrations/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: trip.slug, couponCode: appliedCoupon?.code }),
+        body: JSON.stringify({ slug: trip.slug, couponCode: appliedCode }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -191,7 +217,7 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
           whatsappNumber,
           guardianPhone,
           collegeRegNumber,
-          couponCode: appliedCoupon?.code,
+          couponCode: appliedCode,
           paymentScreenshot: screenshotData,
         }),
       });
@@ -314,11 +340,15 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
           </div>
           <div className="text-right flex-shrink-0">
             <p className="text-xs text-white/40">Amount</p>
-            {appliedCoupon ? (
+            {appliedCoupon || appliedAmbassador ? (
               <>
                 <p className="text-xs text-white/30 line-through">{formatCurrency(trip.basePrice)}</p>
                 <p className="text-lg font-bold" style={{ color: "#10b981" }}>
-                  {formatCurrency(Math.max(trip.basePrice - Math.min(Math.round((trip.basePrice * appliedCoupon.discountPercent) / 100), appliedCoupon.maxDiscountAmount), 0))}
+                  {formatCurrency(
+                    appliedCoupon
+                      ? Math.max(trip.basePrice - Math.min(Math.round((trip.basePrice * appliedCoupon.discountPercent) / 100), appliedCoupon.maxDiscountAmount), 0)
+                      : trip.basePrice - ambassadorDisplayDiscount(trip.basePrice, appliedAmbassador!)
+                  )}
                 </p>
               </>
             ) : (
@@ -395,16 +425,24 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
             <div>
               <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-1.5">Got a coupon or referral code?</label>
 
-              {appliedCoupon ? (
+              {appliedCoupon || appliedAmbassador ? (
                 <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ background: "rgba(16,185,129,0.1)", border: "1.5px solid rgba(16,185,129,0.3)" }}>
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Check size={16} style={{ color: "#10b981" }} className="flex-shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{appliedCoupon.code} applied</p>
-                      <p className="text-xs text-white/40">{appliedCoupon.discountPercent}% off, up to {formatCurrency(appliedCoupon.maxDiscountAmount)}</p>
+                      <p className="text-sm font-bold text-white truncate">{appliedCode} applied</p>
+                      <p className="text-xs text-white/40">
+                        {appliedCoupon
+                          ? `${appliedCoupon.discountPercent}% off, up to ${formatCurrency(appliedCoupon.maxDiscountAmount)}`
+                          : `${formatCurrency(ambassadorDisplayDiscount(trip.basePrice, appliedAmbassador!))} off`}
+                      </p>
                     </div>
                   </div>
-                  <button type="button" onClick={() => setAppliedCoupon(null)} className="flex-shrink-0 p-1.5 rounded-full hover:bg-white/10 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => { setAppliedCoupon(null); setAppliedAmbassador(null); }}
+                    className="flex-shrink-0 p-1.5 rounded-full hover:bg-white/10 transition-colors"
+                  >
                     <X size={14} className="text-white/50" />
                   </button>
                 </div>
@@ -496,7 +534,7 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
                       <span className="text-white/40 line-through">{formatCurrency(quote.originalAmount)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-white/50">Coupon ({quote.coupon?.code})</span>
+                      <span className="text-white/50">{quote.coupon ? "Coupon" : "Referral"} ({quote.coupon?.code ?? quote.ambassador?.code})</span>
                       <span style={{ color: "#10b981" }}>− {formatCurrency(quote.discountAmount)}</span>
                     </div>
                     <div className="flex justify-between text-sm font-bold pt-1.5 border-t" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
@@ -565,7 +603,7 @@ export default function RegisterClient({ trip, upiId, userName, userEmail, myCou
               <div className="flex items-center gap-2.5 rounded-xl px-4 py-3" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)" }}>
                 <Sparkles size={15} style={{ color: "#10b981" }} className="flex-shrink-0" />
                 <p className="text-sm text-white/70">
-                  Coupon <span className="font-bold text-white">{quote.coupon?.code}</span> saved you {formatCurrency(quote.discountAmount)}.
+                  {quote.coupon ? "Coupon" : "Referral code"} <span className="font-bold text-white">{quote.coupon?.code ?? quote.ambassador?.code}</span> saved you {formatCurrency(quote.discountAmount)}.
                 </p>
               </div>
             )}

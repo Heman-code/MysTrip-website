@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { users, registrations, trips, reviews } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
+import { getAmbassadorDashboardData } from "@/lib/db/ambassadors";
 import DashboardClient from "./DashboardClient";
 
 export const metadata: Metadata = {
@@ -16,10 +17,12 @@ export default async function DashboardPage() {
 
   // Look up user by email to get createdAt and past trips
   const [dbUser] = await db
-    .select({ id: users.id, fullName: users.fullName, college: users.college, createdAt: users.createdAt })
+    .select({ id: users.id, fullName: users.fullName, college: users.college, createdAt: users.createdAt, isAmbassador: users.isAmbassador })
     .from(users)
     .where(eq(users.email, session.user.email!))
     .limit(1);
+
+  const ambassadorData = dbUser?.isAmbassador ? await getAmbassadorDashboardData(dbUser.id) : null;
 
   // Fetch past trips via registrations
   const pastTrips = dbUser
@@ -80,6 +83,27 @@ export default async function DashboardPage() {
         tripDate: r.tripDate ?? "",
       }))}
       reviewsLeftCount={reviewedRegIds.size}
+      ambassador={
+        ambassadorData
+          ? {
+              referralCode: ambassadorData.ambassador.referralCode,
+              discountType: ambassadorData.ambassador.discountType,
+              discountValue: Number(ambassadorData.ambassador.discountValue),
+              discountMaxCap: ambassadorData.ambassador.discountMaxCap !== null ? Number(ambassadorData.ambassador.discountMaxCap) : null,
+              clicks: ambassadorData.clicks,
+              bookingsAttributed: ambassadorData.bookingsAttributed,
+              revenue: ambassadorData.revenue,
+              payoutPending: ambassadorData.payoutPending,
+              payoutHistory: ambassadorData.payoutHistory.map((p) => ({
+                id: p.id,
+                amount: Number(p.amount),
+                status: p.status ?? "pending",
+                paidAt: p.paidAt?.toISOString() ?? null,
+                createdAt: p.createdAt?.toISOString() ?? "",
+              })),
+            }
+          : null
+      }
     />
   );
 }

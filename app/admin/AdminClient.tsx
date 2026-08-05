@@ -1,17 +1,50 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Users, Star, BarChart2, CheckCircle, Clock, XCircle, Receipt, Plus, Pencil, MapPin, Check, X } from "lucide-react";
 import TripForm from "./TripForm";
+import PoiForm from "./PoiForm";
+import AmbassadorForm from "./AmbassadorForm";
+import AttributeBookingForm from "./AttributeBookingForm";
+import type { EntryFees } from "@/lib/db/pois";
 
-interface UserRow {
+export interface UserRow {
   id: string;
   fullName: string;
   email: string;
+  phone: string | null;
   college: string | null;
   role: string;
+  isAmbassador: boolean;
   createdAt: string;
+}
+
+export interface AmbassadorRow {
+  id: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  referralCode: string;
+  tier: string;
+  instagramHandle: string | null;
+  upiId: string | null;
+  status: string;
+  discountType: string;
+  discountValue: number;
+  discountMaxCap: number | null;
+  commissionType: string;
+  commissionValue: number;
+  commissionBase: string;
+  notes: string | null;
+  createdAt: string;
+  clicks: number;
+  bookingsAttributed: number;
+  revenue: number;
+  payoutPending: number;
+  payoutPaid: number;
+  pendingPayouts: { id: string; amount: number; createdAt: string }[];
 }
 
 interface ReviewRow {
@@ -68,6 +101,38 @@ export interface AdminTripRow {
   registrationOpen: boolean;
 }
 
+export interface AdminSpecialEventRow {
+  name: string;
+  description: string;
+  daysOfWeek: string[];
+  startTime: string;
+  endTime: string;
+  isMustSee: boolean;
+}
+
+export interface AdminPoiRow {
+  id: string;
+  citySlug: string;
+  slug: string;
+  name: string;
+  category: string;
+  latitude: number;
+  longitude: number;
+  address: string;
+  shortDescription: string;
+  longDescription: string;
+  interestTags: string[];
+  photos: string[];
+  coverImage: string;
+  openingHours: Record<string, { open: string; close: string }[]> | null;
+  avgVisitDurationMinutes: number;
+  entryFees: EntryFees;
+  googleRating: number | null;
+  isActive: boolean;
+  source: string;
+  specialEvents: AdminSpecialEventRow[];
+}
+
 interface Props {
   stats: { totalUsers: number; totalBookings: number; pendingReviews: number; pendingRegistrations: number };
   users: UserRow[];
@@ -75,11 +140,14 @@ interface Props {
   pendingRegistrations: RegistrationRow[];
   confirmedRegistrations: RegistrationRow[];
   trips: AdminTripRow[];
+  pois: AdminPoiRow[];
+  ambassadors: AmbassadorRow[];
 }
 
-const tabs = ["Overview", "Users", "Review Approvals", "Registrations", "Trips"];
+const tabs = ["Overview", "Users", "Review Approvals", "Registrations", "Trips", "Jaipur POIs", "Ambassadors"];
 
-export default function AdminClient({ stats, users, pendingReviews, pendingRegistrations, confirmedRegistrations, trips: initialTrips }: Props) {
+export default function AdminClient({ stats, users, pendingReviews, pendingRegistrations, confirmedRegistrations, trips: initialTrips, pois: initialPois, ambassadors: initialAmbassadors }: Props) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [reviews, setReviews] = useState(pendingReviews);
   const [approving, setApproving] = useState<string | null>(null);
@@ -98,6 +166,16 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
   const [openingPriceId, setOpeningPriceId] = useState<string | null>(null);
   const [priceDraft, setPriceDraft] = useState("");
   const [savingPrice, setSavingPrice] = useState(false);
+  const [pois, setPois] = useState(initialPois);
+  const [poiFormOpen, setPoiFormOpen] = useState(false);
+  const [editingPoi, setEditingPoi] = useState<AdminPoiRow | null>(null);
+  const [togglingPoiId, setTogglingPoiId] = useState<string | null>(null);
+  const [ambassadors, setAmbassadors] = useState(initialAmbassadors);
+  const [ambassadorFormOpen, setAmbassadorFormOpen] = useState(false);
+  const [editingAmbassador, setEditingAmbassador] = useState<AmbassadorRow | null>(null);
+  const [togglingAmbassadorId, setTogglingAmbassadorId] = useState<string | null>(null);
+  const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
+  const [attributingFor, setAttributingFor] = useState<AmbassadorRow | null>(null);
 
   const startEditingSlots = (trip: AdminTripRow) => {
     setEditingSlotsId(trip.id);
@@ -165,6 +243,70 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
     });
     setFormOpen(false);
     setEditingTrip(null);
+  };
+
+  const handlePoiSaved = (saved: AdminPoiRow) => {
+    setPois((ps) => {
+      const exists = ps.some((p) => p.id === saved.id);
+      return exists ? ps.map((p) => (p.id === saved.id ? saved : p)) : [saved, ...ps];
+    });
+    setPoiFormOpen(false);
+    setEditingPoi(null);
+  };
+
+  const togglePoiActive = async (poi: AdminPoiRow) => {
+    setTogglingPoiId(poi.id);
+    const res = await fetch(`/api/admin/pois/${poi.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !poi.isActive }),
+    });
+    if (res.ok) {
+      setPois((ps) => ps.map((p) => (p.id === poi.id ? { ...p, isActive: !poi.isActive } : p)));
+    }
+    setTogglingPoiId(null);
+  };
+
+  const handleAmbassadorSaved = (saved: AmbassadorRow) => {
+    setAmbassadors((as) => {
+      const exists = as.some((a) => a.id === saved.id);
+      return exists ? as.map((a) => (a.id === saved.id ? saved : a)) : [saved, ...as];
+    });
+    setAmbassadorFormOpen(false);
+    setEditingAmbassador(null);
+  };
+
+  const toggleAmbassadorStatus = async (ambassador: AmbassadorRow) => {
+    const nextStatus = ambassador.status === "active" ? "paused" : "active";
+    setTogglingAmbassadorId(ambassador.id);
+    const res = await fetch(`/api/admin/ambassadors/${ambassador.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: nextStatus }),
+    });
+    if (res.ok) {
+      setAmbassadors((as) => as.map((a) => (a.id === ambassador.id ? { ...a, status: nextStatus } : a)));
+    }
+    setTogglingAmbassadorId(null);
+  };
+
+  const markPayoutPaid = async (ambassadorId: string, payoutId: string, amount: number) => {
+    setMarkingPaidId(payoutId);
+    const res = await fetch(`/api/admin/payouts/${payoutId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "mark_paid" }),
+    });
+    if (res.ok) {
+      setAmbassadors((as) =>
+        as.map((a) =>
+          a.id === ambassadorId
+            ? { ...a, pendingPayouts: a.pendingPayouts.filter((p) => p.id !== payoutId), payoutPending: a.payoutPending - amount, payoutPaid: a.payoutPaid + amount }
+            : a
+        )
+      );
+    }
+    setMarkingPaidId(null);
   };
 
   const approve = async (id: string) => {
@@ -716,6 +858,213 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
             </div>
           </div>
         )}
+
+        {/* Jaipur POIs */}
+        {activeTab === 5 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-bold text-gray-900" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+                Jaipur POIs <span className="text-gray-400 font-normal text-sm ml-2">({pois.length})</span>
+              </h2>
+              <button
+                onClick={() => { setEditingPoi(null); setPoiFormOpen(true); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                style={{ background: "#FF6016" }}
+              >
+                <Plus size={16} /> Add New POI
+              </button>
+            </div>
+
+            {pois.length === 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                <p className="font-semibold text-gray-700">No POIs yet.</p>
+                <p className="text-sm text-gray-400 mt-1">Add Jaipur&apos;s first point of interest to start building the planner catalog.</p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {pois.map((p) => (
+                <div
+                  key={p.id}
+                  className={`rounded-2xl border p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 transition-all ${
+                    p.isActive ? "bg-white border-gray-100" : "bg-gray-50 border-gray-100 opacity-60"
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="font-semibold text-gray-900 text-sm">{p.name}</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 capitalize">
+                        {p.category}
+                      </span>
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                        style={{ background: p.source === "google_places" ? "#4285F4" : "#01574A" }}
+                      >
+                        {p.source === "google_places" ? "Google" : "Manual"}
+                      </span>
+                      {p.specialEvents.length > 0 && (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background: "rgba(255,96,22,0.1)", color: "#FF6016" }}>
+                          {p.specialEvents.length} special event{p.specialEvents.length > 1 ? "s" : ""}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 flex items-center gap-1 flex-wrap">
+                      <MapPin size={11} /> {p.address || `${p.latitude}, ${p.longitude}`}
+                    </p>
+                    {p.shortDescription && (
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-1">{p.shortDescription}</p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <span className="text-xs font-semibold text-gray-500">{p.isActive ? "Active" : "Hidden"}</span>
+                      <button
+                        type="button"
+                        onClick={() => togglePoiActive(p)}
+                        disabled={togglingPoiId === p.id}
+                        className="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
+                        style={{ background: p.isActive ? "#10b981" : "#d1d5db" }}
+                      >
+                        <span
+                          className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
+                          style={{ transform: p.isActive ? "translateX(20px)" : "translateX(4px)" }}
+                        />
+                      </button>
+                    </label>
+                    <button
+                      onClick={() => { setEditingPoi(p); setPoiFormOpen(true); }}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-gray-200 hover:bg-gray-50 transition-all"
+                    >
+                      <Pencil size={13} /> Edit
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {/* Ambassadors */}
+        {activeTab === 6 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-bold text-gray-900" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+                Ambassadors <span className="text-gray-400 font-normal text-sm ml-2">({ambassadors.length})</span>
+              </h2>
+              <button
+                onClick={() => { setEditingAmbassador(null); setAmbassadorFormOpen(true); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                style={{ background: "#FF6016" }}
+              >
+                <Plus size={16} /> Promote a User
+              </button>
+            </div>
+
+            {ambassadors.length === 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                <p className="font-semibold text-gray-700">No ambassadors yet.</p>
+                <p className="text-sm text-gray-400 mt-1">Promote an existing member to start the referral program.</p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {ambassadors.map((a) => (
+                <div
+                  key={a.id}
+                  className={`rounded-2xl border p-4 flex flex-col gap-4 transition-all ${
+                    a.status === "active" ? "bg-white border-gray-100" : "bg-gray-50 border-gray-100 opacity-60"
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="font-semibold text-gray-900 text-sm">{a.fullName}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,96,22,0.1)", color: "#FF6016" }}>
+                          {a.referralCode}
+                        </span>
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 capitalize">{a.tier}</span>
+                      </div>
+                      <p className="text-xs text-gray-400">{a.email}{a.instagramHandle ? ` · @${a.instagramHandle}` : ""}</p>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <span className="text-xs font-semibold text-gray-500">{a.status === "active" ? "Active" : "Paused"}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleAmbassadorStatus(a)}
+                          disabled={togglingAmbassadorId === a.id}
+                          className="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
+                          style={{ background: a.status === "active" ? "#10b981" : "#d1d5db" }}
+                        >
+                          <span
+                            className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
+                            style={{ transform: a.status === "active" ? "translateX(20px)" : "translateX(4px)" }}
+                          />
+                        </button>
+                      </label>
+                      <button
+                        onClick={() => setAttributingFor(a)}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-gray-200 hover:bg-gray-50 transition-all"
+                      >
+                        Log Booking
+                      </button>
+                      <button
+                        onClick={() => { setEditingAmbassador(a); setAmbassadorFormOpen(true); }}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-gray-200 hover:bg-gray-50 transition-all"
+                      >
+                        <Pencil size={13} /> Edit
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-3 border-t border-gray-100">
+                    {[
+                      { label: "Discount", value: a.discountType === "flat" ? `₹${a.discountValue}` : `${a.discountValue}%${a.discountMaxCap ? ` (max ₹${a.discountMaxCap})` : ""}` },
+                      { label: "Commission", value: a.commissionType === "flat" ? `₹${a.commissionValue}` : `${a.commissionValue}%` },
+                      { label: "Clicks", value: a.clicks },
+                      { label: "Bookings", value: a.bookingsAttributed },
+                      { label: "Revenue", value: `₹${a.revenue.toLocaleString("en-IN")}` },
+                    ].map((s) => (
+                      <div key={s.label}>
+                        <p className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">{s.label}</p>
+                        <p className="text-sm font-semibold text-gray-800">{s.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {(a.payoutPending > 0 || a.payoutPaid > 0) && (
+                    <div className="flex items-center gap-4 text-xs">
+                      {a.payoutPending > 0 && (
+                        <span className="font-semibold" style={{ color: "#FF6016" }}>₹{a.payoutPending.toLocaleString("en-IN")} owed</span>
+                      )}
+                      {a.payoutPaid > 0 && (
+                        <span className="text-gray-400">₹{a.payoutPaid.toLocaleString("en-IN")} paid out</span>
+                      )}
+                    </div>
+                  )}
+                  {a.pendingPayouts.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      {a.pendingPayouts.map((p) => (
+                        <div key={p.id} className="flex items-center justify-between text-xs rounded-lg px-3 py-2" style={{ background: "#FFFBF5" }}>
+                          <span className="text-gray-500">
+                            ₹{p.amount.toLocaleString("en-IN")} pending · {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                          </span>
+                          <button
+                            onClick={() => markPayoutPaid(a.id, p.id, p.amount)}
+                            disabled={markingPaidId === p.id}
+                            className="font-bold px-2.5 py-1 rounded-full text-white disabled:opacity-50"
+                            style={{ background: "#10b981" }}
+                          >
+                            {markingPaidId === p.id ? "…" : "Mark Paid"}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Trip create/edit form */}
@@ -724,6 +1073,34 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
           trip={editingTrip}
           onClose={() => { setFormOpen(false); setEditingTrip(null); }}
           onSaved={handleTripSaved}
+        />
+      )}
+
+      {/* POI create/edit form */}
+      {poiFormOpen && (
+        <PoiForm
+          poi={editingPoi}
+          onClose={() => { setPoiFormOpen(false); setEditingPoi(null); }}
+          onSaved={handlePoiSaved}
+        />
+      )}
+
+      {/* Ambassador promote/edit form */}
+      {ambassadorFormOpen && (
+        <AmbassadorForm
+          ambassador={editingAmbassador}
+          users={users}
+          onClose={() => { setAmbassadorFormOpen(false); setEditingAmbassador(null); }}
+          onSaved={handleAmbassadorSaved}
+        />
+      )}
+
+      {/* Manual booking-attribution entry */}
+      {attributingFor && (
+        <AttributeBookingForm
+          ambassador={attributingFor}
+          onClose={() => setAttributingFor(null)}
+          onSaved={() => { setAttributingFor(null); router.refresh(); }}
         />
       )}
 

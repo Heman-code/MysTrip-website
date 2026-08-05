@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { coupons } from "@/lib/db/schema";
+import { getActiveAmbassadorByCode } from "@/lib/referral";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -21,22 +22,36 @@ export async function POST(req: NextRequest) {
     .where(eq(coupons.code, code.trim().toUpperCase()))
     .limit(1);
 
-  if (!coupon) {
-    return NextResponse.json({ error: "That code doesn't exist. Double-check and try again." }, { status: 404 });
-  }
-  if (coupon.userId !== session.user.id) {
-    return NextResponse.json({ error: "That coupon belongs to someone else's account." }, { status: 403 });
-  }
-  if (coupon.isUsed) {
-    return NextResponse.json({ error: "That coupon's already been used." }, { status: 409 });
+  if (coupon) {
+    if (coupon.userId !== session.user.id) {
+      return NextResponse.json({ error: "That coupon belongs to someone else's account." }, { status: 403 });
+    }
+    if (coupon.isUsed) {
+      return NextResponse.json({ error: "That coupon's already been used." }, { status: 409 });
+    }
+    return NextResponse.json({
+      ok: true,
+      coupon: {
+        code: coupon.code,
+        discountPercent: coupon.discountPercent,
+        maxDiscountAmount: Number(coupon.maxDiscountAmount),
+      },
+    });
   }
 
-  return NextResponse.json({
-    ok: true,
-    coupon: {
-      code: coupon.code,
-      discountPercent: coupon.discountPercent,
-      maxDiscountAmount: Number(coupon.maxDiscountAmount),
-    },
-  });
+  // Not a coupon — the same input doubles as an ambassador referral code.
+  const ambassador = await getActiveAmbassadorByCode(code);
+  if (ambassador) {
+    return NextResponse.json({
+      ok: true,
+      ambassador: {
+        code: ambassador.referralCode,
+        discountType: ambassador.discountType,
+        discountValue: Number(ambassador.discountValue),
+        discountMaxCap: ambassador.discountMaxCap !== null ? Number(ambassador.discountMaxCap) : null,
+      },
+    });
+  }
+
+  return NextResponse.json({ error: "That code doesn't exist. Double-check and try again." }, { status: 404 });
 }

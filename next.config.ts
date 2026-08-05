@@ -14,11 +14,11 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://checkout.razorpay.com https://www.googletagmanager.com",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://checkout.razorpay.com https://www.googletagmanager.com https://maps.googleapis.com",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' wss: https://www.google-analytics.com https://www.googletagmanager.com",
+      "connect-src 'self' wss: https://www.google-analytics.com https://www.googletagmanager.com https://maps.googleapis.com https://maps.gstatic.com",
       "frame-src https://checkout.razorpay.com",
       "object-src 'none'",
       "base-uri 'self'",

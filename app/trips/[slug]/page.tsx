@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDateRange, nightCount, daysUntil, type ItineraryTrack } from "@/lib/data/trips";
 import { getDbTripBySlug, getAllDbTripsForAdmin } from "@/lib/db/trips";
 import { formatCurrency } from "@/lib/utils";
+import { readReferralCode } from "@/lib/referral-cookie";
 import JsonLd from "@/components/seo/JsonLd";
 import TripDetailClient from "./TripDetailClient";
 import TripViewTracker from "@/components/analytics/TripViewTracker";
@@ -68,6 +70,12 @@ export default async function TripDetailPage({ params }: Props) {
   const isMultiDay = nights > 0;
   const isSoldOut = slotsLeft <= 0;
   const canRegister = trip.registrationOpen && !isSoldOut;
+
+  // WhatsApp-fallback trips (no in-app registration) have no booking row to
+  // attach a referral code to, so the code rides along as visible text in
+  // the prefilled message for the founder to log manually in the admin panel.
+  const referralCode = readReferralCode(await cookies());
+  const whatsappText = (base: string) => (referralCode ? `${base} — Ref: ${referralCode}` : base);
 
   const eventSchema = {
     "@context": "https://schema.org",
@@ -337,7 +345,7 @@ export default async function TripDetailPage({ params }: Props) {
                       </button>
                     ) : (
                       <a
-                        href={`https://wa.me/918822068322?text=Hey! I want to join the ${encodeURIComponent(trip.title)} trip.`}
+                        href={`https://wa.me/918822068322?text=${encodeURIComponent(whatsappText(`Hey! I want to join the ${trip.title} trip.`))}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full text-center py-4 rounded-2xl font-bold text-white text-base transition-all hover:opacity-90 active:scale-95"
@@ -414,7 +422,7 @@ export default async function TripDetailPage({ params }: Props) {
           </button>
         ) : (
           <a
-            href={`https://wa.me/918822068322?text=Hey! I want to join the ${encodeURIComponent(trip.title)} trip.`}
+            href={`https://wa.me/918822068322?text=${encodeURIComponent(whatsappText(`Hey! I want to join the ${trip.title} trip.`))}`}
             target="_blank"
             rel="noopener noreferrer"
             className="px-6 py-3 rounded-2xl font-bold text-white text-sm flex-shrink-0"

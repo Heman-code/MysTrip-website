@@ -6,6 +6,8 @@ import { coupons } from "@/lib/db/schema";
 import { getDbTripBySlug } from "@/lib/db/trips";
 import { generateUpiQrDataUrl } from "@/lib/upi";
 import { computeDiscount } from "@/lib/coupons";
+import { computeAmbassadorDiscount } from "@/lib/ambassadors";
+import { getActiveAmbassadorByCode } from "@/lib/referral";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -22,6 +24,7 @@ export async function POST(req: NextRequest) {
   const originalAmount = Number(trip.basePrice);
   let discountAmount = 0;
   let appliedCoupon: { code: string; discountPercent: number } | null = null;
+  let appliedAmbassador: { code: string; discountType: string; discountValue: number; discountMaxCap: number | null } | null = null;
 
   if (typeof couponCode === "string" && couponCode.trim()) {
     const [coupon] = await db
@@ -34,8 +37,21 @@ export async function POST(req: NextRequest) {
       const result = computeDiscount(originalAmount, coupon.discountPercent, Number(coupon.maxDiscountAmount));
       discountAmount = result.discountAmount;
       appliedCoupon = { code: coupon.code, discountPercent: coupon.discountPercent };
+    } else if (!coupon) {
+      // Not a coupon — the same input doubles as an ambassador referral code.
+      const ambassador = await getActiveAmbassadorByCode(couponCode);
+      if (ambassador) {
+        const result = computeAmbassadorDiscount(originalAmount, ambassador);
+        discountAmount = result.discountAmount;
+        appliedAmbassador = {
+          code: ambassador.referralCode,
+          discountType: ambassador.discountType,
+          discountValue: Number(ambassador.discountValue),
+          discountMaxCap: ambassador.discountMaxCap !== null ? Number(ambassador.discountMaxCap) : null,
+        };
+      }
     }
-    // an invalid/stale coupon at this point silently falls back to full price —
+    // an invalid/stale code at this point silently falls back to full price —
     // apply-coupon already validated it on step 1, this just guards against races
   }
 
@@ -48,6 +64,7 @@ export async function POST(req: NextRequest) {
     discountAmount,
     finalAmount,
     coupon: appliedCoupon,
+    ambassador: appliedAmbassador,
     qrDataUrl,
   });
 }

@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { users, reviews, registrations, trips } from "@/lib/db/schema";
 import { eq, count, desc } from "drizzle-orm";
 import { getAllDbTripsForAdmin } from "@/lib/db/trips";
+import { getAllPoisWithEventsForAdmin, type EntryFees } from "@/lib/db/pois";
+import { getAllAmbassadorsForAdmin } from "@/lib/db/ambassadors";
 import AdminClient from "./AdminClient";
 
 export const metadata: Metadata = {
@@ -16,7 +18,7 @@ export default async function AdminPage() {
   const role = (session?.user as { role?: string } | undefined)?.role;
   if (!session || role !== "admin") redirect("/");
 
-  const [[{ total: totalUsers }], [{ total: totalBookings }], [{ total: pendingReviews }], [{ total: pendingRegistrations }], allUsers, rawReviews, rawRegistrations, rawConfirmedRegistrations, allTrips] =
+  const [[{ total: totalUsers }], [{ total: totalBookings }], [{ total: pendingReviews }], [{ total: pendingRegistrations }], allUsers, rawReviews, rawRegistrations, rawConfirmedRegistrations, allTrips, allPoisWithEvents] =
     await Promise.all([
       db.select({ total: count() }).from(users),
       db.select({ total: count() }).from(registrations),
@@ -26,8 +28,10 @@ export default async function AdminPage() {
         id: users.id,
         fullName: users.fullName,
         email: users.email,
+        phone: users.phone,
         college: users.college,
         role: users.role,
+        isAmbassador: users.isAmbassador,
         createdAt: users.createdAt,
       }).from(users).orderBy(users.createdAt),
       db.select({
@@ -80,7 +84,14 @@ export default async function AdminPage() {
         .where(eq(registrations.bookingStatus, "confirmed"))
         .orderBy(desc(registrations.createdAt)),
       getAllDbTripsForAdmin(),
+      getAllPoisWithEventsForAdmin(),
     ]);
+
+  // Run after the main batch, not folded into the Promise.all above — the
+  // POI query's own comment already flags Neon HTTP-driver connection
+  // throttling as a real prior issue with this many concurrent queries, and
+  // this fetches its own 4 aggregate queries internally.
+  const allAmbassadors = await getAllAmbassadorsForAdmin();
 
   return (
     <AdminClient
@@ -93,7 +104,18 @@ export default async function AdminPage() {
       users={allUsers.map((u) => ({
         ...u,
         role: u.role ?? "user",
+        isAmbassador: !!u.isAmbassador,
         createdAt: u.createdAt?.toISOString() ?? "",
+      }))}
+      ambassadors={allAmbassadors.map((a) => ({
+        ...a,
+        discountValue: Number(a.discountValue),
+        discountMaxCap: a.discountMaxCap !== null ? Number(a.discountMaxCap) : null,
+        commissionValue: Number(a.commissionValue),
+        tier: a.tier ?? "micro",
+        status: a.status ?? "active",
+        commissionBase: a.commissionBase ?? "post_discount",
+        createdAt: a.createdAt?.toISOString() ?? "",
       }))}
       pendingReviews={rawReviews.map((r) => ({
         ...r,
@@ -140,6 +162,35 @@ export default async function AdminPage() {
         tagColor: t.tagColor ?? "#FF6016",
         accentColor: t.accentColor ?? "#FF6016",
         registrationOpen: !!t.registrationOpen,
+      }))}
+      pois={allPoisWithEvents.map(({ poi: p, events }) => ({
+        id: p.id,
+        citySlug: p.citySlug,
+        slug: p.slug,
+        name: p.name,
+        category: p.category ?? "other",
+        latitude: Number(p.latitude),
+        longitude: Number(p.longitude),
+        address: p.address ?? "",
+        shortDescription: p.shortDescription ?? "",
+        longDescription: p.longDescription ?? "",
+        interestTags: (p.interestTags as string[] | null) ?? [],
+        photos: (p.photos as string[] | null) ?? [],
+        coverImage: p.coverImage ?? "",
+        openingHours: (p.openingHours as Record<string, { open: string; close: string }[]> | null) ?? null,
+        avgVisitDurationMinutes: p.avgVisitDurationMinutes ?? 60,
+        entryFees: (p.entryFees as EntryFees | null) ?? {},
+        googleRating: p.googleRating !== null ? Number(p.googleRating) : null,
+        isActive: !!p.isActive,
+        source: p.source ?? "manual",
+        specialEvents: events.map((e) => ({
+          name: e.name,
+          description: e.description ?? "",
+          daysOfWeek: (e.daysOfWeek as string[] | null) ?? [],
+          startTime: e.startTime,
+          endTime: e.endTime,
+          isMustSee: !!e.isMustSee,
+        })),
       }))}
     />
   );

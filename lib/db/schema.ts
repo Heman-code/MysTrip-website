@@ -1,6 +1,6 @@
 import {
   pgTable, uuid, varchar, text, numeric, integer, timestamp,
-  pgEnum, boolean, jsonb, index, date, type AnyPgColumn
+  pgEnum, boolean, jsonb, index, uniqueIndex, date, type AnyPgColumn
 } from "drizzle-orm/pg-core";
 
 // ─── ENUMS ────────────────────────────────────────────────────────────────────
@@ -20,6 +20,15 @@ export const membershipTierEnum = pgEnum("membership_tier",   ["explorer", "adve
 export const billingPeriodEnum  = pgEnum("billing_period",    ["monthly", "annual"]);
 export const membershipStatusEnum = pgEnum("membership_status", ["active", "canceled", "expired"]);
 export const couponTypeEnum       = pgEnum("coupon_type",       ["welcome_new", "welcome_returning"]);
+export const poiCategoryEnum      = pgEnum("poi_category",      ["fort", "palace", "temple", "market", "lake", "museum", "garden", "viewpoint", "food", "other"]);
+export const poiSourceEnum        = pgEnum("poi_source",        ["google_places", "manual"]);
+export const itineraryStatusEnum  = pgEnum("itinerary_status",  ["draft", "active", "completed"]);
+export const stopStatusEnum       = pgEnum("stop_status",       ["pending", "visited", "skipped"]);
+export const ambassadorTierEnum   = pgEnum("ambassador_tier",   ["micro", "mid", "anchor"]);
+export const ambassadorStatusEnum = pgEnum("ambassador_status", ["active", "paused"]);
+export const amountKindEnum       = pgEnum("amount_kind",       ["flat", "percentage"]); // shared by discount & commission
+export const commissionBaseEnum   = pgEnum("commission_base",   ["pre_discount", "post_discount"]);
+export const payoutStatusEnum     = pgEnum("payout_status",     ["pending", "paid"]);
 
 // ─── ADMIN USERS ──────────────────────────────────────────────────────────────
 // Separate from regular users. Hemant's team + Sundarone hostel owner login.
@@ -47,6 +56,7 @@ export const users = pgTable("users", {
   avatarUrl:            varchar("avatar_url", { length: 500 }),
   isSundaroneResident:  boolean("is_sundarone_resident").default(false),
   hasTraveledBefore:    boolean("has_traveled_before").default(false), // self-declared at signup, drives welcome coupon tier
+  isAmbassador:         boolean("is_ambassador").default(false),
   lastActiveAt:         timestamp("last_active_at"),
   createdAt:            timestamp("created_at").defaultNow(),
 }, (t) => ({
@@ -150,6 +160,49 @@ export const coupons = pgTable("coupons", {
   userIdx: index("coupons_user_idx").on(t.userId),
 }));
 
+// ─── AMBASSADORS ──────────────────────────────────────────────────────────────
+// Student creators promoting trips with a referral code. Added manually by the
+// admin — no public self-registration. Discount/commission terms are set per
+// ambassador and only ever apply to bookings made after they're set (past
+// bookings/payouts snapshot their own amounts, see registrations/payouts below).
+
+export const ambassadors = pgTable("ambassadors", {
+  id:                 uuid("id").defaultRandom().primaryKey(),
+  userId:             uuid("user_id").references(() => users.id).notNull().unique(),
+  referralCode:       varchar("referral_code", { length: 50 }).notNull().unique(), // stored uppercase for case-insensitive uniqueness
+  tier:               ambassadorTierEnum("tier").default("micro"),
+  instagramHandle:    varchar("instagram_handle", { length: 255 }),
+  upiId:              varchar("upi_id", { length: 255 }),
+  status:             ambassadorStatusEnum("status").default("active"),
+
+  discountType:       amountKindEnum("discount_type").notNull(),
+  discountValue:      numeric("discount_value", { precision: 10, scale: 2 }).notNull(),
+  discountMaxCap:     numeric("discount_max_cap", { precision: 10, scale: 2 }),
+
+  commissionType:     amountKindEnum("commission_type").notNull(),
+  commissionValue:    numeric("commission_value", { precision: 10, scale: 2 }).notNull(),
+  commissionBase:     commissionBaseEnum("commission_base").default("post_discount"),
+
+  notes:              text("notes"), // admin-only, e.g. negotiated terms
+  createdBy:          text("created_by"), // admin identifier, audit trail
+  createdAt:          timestamp("created_at").defaultNow(),
+}, (t) => ({
+  codeIdx: index("ambassador_code_idx").on(t.referralCode),
+  userIdx: index("ambassador_user_idx").on(t.userId),
+}));
+
+// ─── REFERRAL CLICKS ───────────────────────────────────────────────────────────
+// Click-volume visibility only — no PII stored here.
+
+export const referralClicks = pgTable("referral_clicks", {
+  id:           uuid("id").defaultRandom().primaryKey(),
+  ambassadorId: uuid("ambassador_id").references(() => ambassadors.id).notNull(),
+  tripSlug:     varchar("trip_slug", { length: 255 }),
+  clickedAt:    timestamp("clicked_at").defaultNow(),
+}, (t) => ({
+  ambassadorIdx: index("referral_click_ambassador_idx").on(t.ambassadorId),
+}));
+
 // ─── REGISTRATIONS / BOOKINGS ─────────────────────────────────────────────────
 
 export const registrations = pgTable("registrations", {
@@ -185,7 +238,16 @@ export const registrations = pgTable("registrations", {
   guardianPhone:     varchar("guardian_phone", { length: 20 }),
   collegeRegNumber:  varchar("college_reg_number", { length: 100 }),
   paymentScreenshot: text("payment_screenshot"), // base64 data URL, verified manually by an admin
+
+  // Ambassador referral attribution. referralCode is the code string at time of
+  // booking (not a live FK, stays accurate if the code is later changed); the
+  // FK below is a stable internal pointer for resolving the payout at confirm
+  // time. referralCommissionSnapshot is the commission ₹ computed from the
+  // ambassador's terms as of THIS booking — an admin editing those terms later
+  // must never change what an already-placed booking owes.
   referralCode:      varchar("referral_code", { length: 50 }),
+  referredAmbassadorId: uuid("referred_ambassador_id").references(() => ambassadors.id),
+  referralCommissionSnapshot: numeric("referral_commission_snapshot", { precision: 10, scale: 2 }),
 
   // GA4 client id captured at submission time, so the server-side "purchase"
   // event fired when an admin confirms payment can be attributed to the
@@ -198,6 +260,26 @@ export const registrations = pgTable("registrations", {
   userIdx:   index("reg_user_idx").on(t.userId),
   tripIdx:   index("reg_trip_idx").on(t.tripId),
   statusIdx: index("reg_status_idx").on(t.bookingStatus),
+}));
+
+// ─── PAYOUTS ─────────────────────────────────────────────────────────────────
+// Ambassador commission ledger. Created when an admin confirms a referred
+// booking's payment (mirrors the GA4 "purchase" event timing below) — never at
+// booking submission, so a rejected/fraudulent screenshot never owes a payout.
+// registrationId is nullable because early/manual entries (WhatsApp-only trips)
+// may not be tied to one exact registration row.
+
+export const payouts = pgTable("payouts", {
+  id:             uuid("id").defaultRandom().primaryKey(),
+  ambassadorId:   uuid("ambassador_id").references(() => ambassadors.id).notNull(),
+  registrationId: uuid("registration_id").references(() => registrations.id),
+  amount:         numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  status:         payoutStatusEnum("status").default("pending"),
+  paidAt:         timestamp("paid_at"),
+  createdAt:      timestamp("created_at").defaultNow(),
+}, (t) => ({
+  ambassadorIdx: index("payout_ambassador_idx").on(t.ambassadorId),
+  statusIdx:     index("payout_status_idx").on(t.status),
 }));
 
 // ─── REFUNDS ─────────────────────────────────────────────────────────────────
@@ -305,6 +387,101 @@ export const blogPosts = pgTable("blog_posts", {
   slugIdx: index("blog_slug_idx").on(t.slug),
 }));
 
+// ─── POIS (AI Trip Planner — Jaipur pilot) ────────────────────────────────────
+// citySlug is on the row from day one so a second city is additive, not a migration.
+
+export const pois = pgTable("pois", {
+  id:                      uuid("id").defaultRandom().primaryKey(),
+  citySlug:                varchar("city_slug", { length: 100 }).notNull().default("jaipur"),
+  slug:                    varchar("slug", { length: 255 }).notNull().unique(),
+  name:                    varchar("name", { length: 255 }).notNull(),
+  category:                poiCategoryEnum("category").default("other"),
+
+  latitude:                numeric("latitude", { precision: 10, scale: 7 }).notNull(),
+  longitude:               numeric("longitude", { precision: 10, scale: 7 }).notNull(),
+  address:                 varchar("address", { length: 500 }),
+  googlePlaceId:           varchar("google_place_id", { length: 255 }).unique(),
+
+  shortDescription:        varchar("short_description", { length: 280 }),   // 2-line pin/card popup text
+  longDescription:         text("long_description"),                        // full detail page
+  interestTags:            jsonb("interest_tags"),                          // string[]
+
+  photos:                  jsonb("photos"),                                 // string[]
+  coverImage:              varchar("cover_image", { length: 500 }),
+
+  openingHours:            jsonb("opening_hours"),  // { mon: [{open,close}], tue: [...], ... }; [] = closed that day
+  avgVisitDurationMinutes: integer("avg_visit_duration_minutes").notNull().default(60),
+  entryFees:               jsonb("entry_fees"),  // { adult?, student?, child?, foreigner?, foreignerStudent? } INR, any field omitted = not applicable
+  googleRating:            numeric("google_rating", { precision: 2, scale: 1 }),
+
+  isActive:                boolean("is_active").default(true),
+  source:                  poiSourceEnum("source").default("manual"),
+
+  createdAt:               timestamp("created_at").defaultNow(),
+  updatedAt:               timestamp("updated_at").defaultNow(),
+}, (t) => ({
+  citySlugIdx: index("poi_city_slug_idx").on(t.citySlug),
+  slugIdx:     index("poi_slug_idx").on(t.slug),
+}));
+
+// ─── POI SPECIAL EVENTS ────────────────────────────────────────────────────────
+// Fixed-time windows (e.g. an evening light-and-sound show) that the itinerary
+// sequencing algorithm schedules a visit around. Separate table, not jsonb on
+// pois, because a POI can have more than one and the algorithm queries these
+// directly.
+
+export const poiSpecialEvents = pgTable("poi_special_events", {
+  id:          uuid("id").defaultRandom().primaryKey(),
+  poiId:       uuid("poi_id").references(() => pois.id).notNull(),
+  name:        varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  daysOfWeek:  jsonb("days_of_week"),                    // string[] | null — null = every day
+  startTime:   varchar("start_time", { length: 5 }).notNull(),  // "HH:MM" 24h
+  endTime:     varchar("end_time", { length: 5 }).notNull(),
+  isMustSee:   boolean("is_must_see").default(true),
+  createdAt:   timestamp("created_at").defaultNow(),
+}, (t) => ({
+  poiIdx: index("poi_special_event_poi_idx").on(t.poiId),
+}));
+
+// ─── ITINERARIES ───────────────────────────────────────────────────────────────
+// One user's planned day in a city.
+
+export const itineraries = pgTable("itineraries", {
+  id:         uuid("id").defaultRandom().primaryKey(),
+  userId:     uuid("user_id").references(() => users.id).notNull(),
+  citySlug:   varchar("city_slug", { length: 100 }).notNull().default("jaipur"),
+  planDate:   date("plan_date").notNull(),   // resolves day-of-week against openingHours/daysOfWeek
+  startTime:  varchar("start_time", { length: 5 }),   // "HH:MM"
+  startLat:   numeric("start_lat", { precision: 10, scale: 7 }),
+  startLng:   numeric("start_lng", { precision: 10, scale: 7 }),
+  startLabel: varchar("start_label", { length: 255 }),   // e.g. "Hotel near Hawa Mahal"
+  status:     itineraryStatusEnum("status").default("draft"),
+  createdAt:  timestamp("created_at").defaultNow(),
+  updatedAt:  timestamp("updated_at").defaultNow(),
+}, (t) => ({
+  userIdx: index("itinerary_user_idx").on(t.userId),
+  dateIdx: index("itinerary_date_idx").on(t.planDate),
+}));
+
+// ─── ITINERARY STOPS ────────────────────────────────────────────────────────────
+// Doubles as the shortlist and, once sequenced, the computed visit order.
+
+export const itineraryStops = pgTable("itinerary_stops", {
+  id:                uuid("id").defaultRandom().primaryKey(),
+  itineraryId:       uuid("itinerary_id").references(() => itineraries.id).notNull(),
+  poiId:             uuid("poi_id").references(() => pois.id).notNull(),
+  sequenceOrder:     integer("sequence_order").notNull().default(0),
+  plannedArrival:    varchar("planned_arrival", { length: 5 }),    // "HH:MM", null until first sequenced
+  plannedDeparture:  varchar("planned_departure", { length: 5 }),
+  status:            stopStatusEnum("status").default("pending"),
+  addedAt:           timestamp("added_at").defaultNow(),
+  visitedAt:         timestamp("visited_at"),
+}, (t) => ({
+  itineraryIdx: index("stop_itinerary_idx").on(t.itineraryId),
+  itineraryPoiIdx: uniqueIndex("stop_itinerary_poi_idx").on(t.itineraryId, t.poiId),
+}));
+
 // ─── INFERRED TYPES ──────────────────────────────────────────────────────────
 
 export type AdminUser    = typeof adminUsers.$inferSelect;
@@ -317,8 +494,22 @@ export type Membership   = typeof memberships.$inferSelect;
 export type Review       = typeof reviews.$inferSelect;
 export type BlogPost     = typeof blogPosts.$inferSelect;
 export type Coupon       = typeof coupons.$inferSelect;
+export type Poi              = typeof pois.$inferSelect;
+export type PoiSpecialEvent  = typeof poiSpecialEvents.$inferSelect;
+export type Itinerary        = typeof itineraries.$inferSelect;
+export type ItineraryStop    = typeof itineraryStops.$inferSelect;
+export type Ambassador       = typeof ambassadors.$inferSelect;
+export type ReferralClick    = typeof referralClicks.$inferSelect;
+export type Payout           = typeof payouts.$inferSelect;
 
 export type NewTrip         = typeof trips.$inferInsert;
 export type NewRegistration = typeof registrations.$inferInsert;
 export type NewRefund       = typeof refunds.$inferInsert;
 export type NewExpense      = typeof expenses.$inferInsert;
+export type NewPoi            = typeof pois.$inferInsert;
+export type NewPoiSpecialEvent = typeof poiSpecialEvents.$inferInsert;
+export type NewItinerary      = typeof itineraries.$inferInsert;
+export type NewItineraryStop  = typeof itineraryStops.$inferInsert;
+export type NewAmbassador     = typeof ambassadors.$inferInsert;
+export type NewReferralClick  = typeof referralClicks.$inferInsert;
+export type NewPayout         = typeof payouts.$inferInsert;
