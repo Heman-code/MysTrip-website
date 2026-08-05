@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { X, ArrowRight } from "lucide-react";
@@ -15,14 +15,24 @@ function daysAway(startDate: string) {
   return Math.round(ms / 86400000);
 }
 
+function subscribe() {
+  return () => {};
+}
+
+function getSnapshot() {
+  return !!sessionStorage.getItem(SESSION_KEY);
+}
+
+function getServerSnapshot() {
+  return true; // stay hidden until hydrated, so we never flash the bar for a user who already dismissed it
+}
+
 export default function StickyTripBar({ trip }: { trip: TripCardData | null }) {
   const pathname = usePathname();
-  const [dismissed, setDismissed] = useState(true);
+  const dismissedInStorage = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [closedThisSession, setClosedThisSession] = useState(false);
+  const dismissed = dismissedInStorage || closedThisSession;
   const shownRef = useRef(false);
-
-  useEffect(() => {
-    setDismissed(!!sessionStorage.getItem(SESSION_KEY));
-  }, []);
 
   const hidden =
     !trip ||
@@ -45,7 +55,7 @@ export default function StickyTripBar({ trip }: { trip: TripCardData | null }) {
   const close = () => {
     trackEvent("sticky_bar_dismissed", { trip_slug: trip.slug });
     sessionStorage.setItem(SESSION_KEY, "1");
-    setDismissed(true);
+    setClosedThisSession(true);
   };
 
   return (
