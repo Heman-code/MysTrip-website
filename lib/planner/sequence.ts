@@ -39,12 +39,12 @@ export interface StartPoint extends LatLng {
 
 const MUST_SEE_BONUS_MINUTES = 15;
 
-function parseTime(t: string): number {
+export function parseTime(t: string): number {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 }
 
-function formatTime(mins: number): string {
+export function formatTime(mins: number): string {
   const clamped = Math.max(0, Math.min(23 * 60 + 59, Math.round(mins)));
   const h = Math.floor(clamped / 60);
   const m = clamped % 60;
@@ -198,7 +198,7 @@ export interface EarlierStartSuggestion {
 }
 
 const CANDIDATE_OFFSETS_MINUTES = [30, 60, 90, 120];
-const EARLIEST_FLOOR_MINUTES = 6 * 60; // 06:00 — don't suggest an unreasonably early start
+export const EARLIEST_FLOOR_MINUTES = 6 * 60; // 06:00 — don't suggest an unreasonably early start
 const TIGHT_MUST_SEE_BUFFER_MINUTES = 10;
 
 // Stops whose scheduled arrival lands within TIGHT_MUST_SEE_BUFFER_MINUTES of
@@ -228,7 +228,8 @@ function findTightMustSeeStops(stops: SequenceStop[], result: SequenceResult): s
 export function suggestEarlierStart(
   stops: SequenceStop[],
   start: StartPoint,
-  baseResult: SequenceResult
+  baseResult: SequenceResult,
+  floorMinutes: number = EARLIEST_FLOOR_MINUTES
 ): EarlierStartSuggestion | null {
   const baseTime = parseTime(start.time);
   const baseTight = findTightMustSeeStops(stops, baseResult);
@@ -236,7 +237,7 @@ export function suggestEarlierStart(
   if (baseResult.infeasible.length === 0 && baseTight.length === 0) return null;
 
   for (const offset of CANDIDATE_OFFSETS_MINUTES) {
-    const candidateMinutes = Math.max(EARLIEST_FLOOR_MINUTES, baseTime - offset);
+    const candidateMinutes = Math.max(floorMinutes, baseTime - offset);
     if (candidateMinutes >= baseTime) continue; // already at the floor, no earlier option left to try
 
     const candidateResult = computeSequence(stops, { ...start, time: formatTime(candidateMinutes) });

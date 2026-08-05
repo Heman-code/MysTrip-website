@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
-import { Clock, MapPin, AlertTriangle, Check, X, Navigation, Loader2, Lightbulb, Route } from "lucide-react";
+import { Clock, MapPin, AlertTriangle, Check, X, Navigation, Loader2, Lightbulb, Route, ExternalLink, Info } from "lucide-react";
 import type { PoiCardData } from "@/lib/db/pois";
-import type { EarlierStartRecommendation } from "@/lib/planner/itinerary";
+import type { EarlierStartRecommendation, StartTimeAdjustment } from "@/lib/planner/itinerary";
 import { travelTimeMinutes, haversineDistanceKm } from "@/lib/planner/geo";
 
 interface StopEntry {
@@ -25,6 +25,9 @@ interface Props {
   initialStops: StopEntry[];
   initialInfeasibleNames: string[];
   initialRecommendation: EarlierStartRecommendation | null;
+  initialStartTimeAdjusted: StartTimeAdjustment | null;
+  startLat: number | null;
+  startLng: number | null;
 }
 
 type GeoStatus = "idle" | "pending" | "granted" | "denied" | "unsupported";
@@ -34,7 +37,36 @@ function nowTime(): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-export default function ItineraryClient({ itineraryId, planDate, initialStops, initialInfeasibleNames, initialRecommendation }: Props) {
+// Real turn-by-turn, traffic-aware driving directions live in Google's own
+// app — replicating that ourselves means enabling and paying for the
+// Directions API for something we'd never match anyway (live traffic, voice
+// nav). This builds a free multi-stop Google Maps deep link instead:
+// current location (or the saved start point) -> stop 1 -> stop 2 -> ...
+function buildGoogleMapsUrl(
+  scheduled: StopEntry[],
+  startLat: number | null,
+  startLng: number | null,
+  liveCoords: { lat: number; lng: number } | null
+): string | null {
+  if (scheduled.length === 0) return null;
+
+  const points = scheduled.map((s) => `${s.poi.latitude},${s.poi.longitude}`);
+  const destination = points[points.length - 1];
+  const waypoints = points.slice(0, -1);
+
+  const params = new URLSearchParams({ api: "1", travelmode: "driving", destination });
+  const origin = liveCoords
+    ? `${liveCoords.lat},${liveCoords.lng}`
+    : startLat !== null && startLng !== null
+      ? `${startLat},${startLng}`
+      : null;
+  if (origin) params.set("origin", origin); // omitted entirely -> Google Maps uses live device location when opened
+  if (waypoints.length > 0) params.set("waypoints", waypoints.join("|"));
+
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+}
+
+export default function ItineraryClient({ itineraryId, planDate, initialStops, initialInfeasibleNames, initialRecommendation, initialStartTimeAdjusted, startLat, startLng }: Props) {
   const mapDivRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
@@ -45,6 +77,7 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
   const [infeasibleNames, setInfeasibleNames] = useState<string[]>(initialInfeasibleNames);
   const [recommendation, setRecommendation] = useState<EarlierStartRecommendation | null>(initialRecommendation);
   const [recommendationDismissed, setRecommendationDismissed] = useState(false);
+  const [startTimeAdjusted, setStartTimeAdjusted] = useState<StartTimeAdjustment | null>(initialStartTimeAdjusted);
   const [resequencing, setResequencing] = useState(false);
   const [busyStopId, setBusyStopId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -66,6 +99,7 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
   });
   const totalTravelMinutes = legs.reduce((sum, l) => sum + l.minutes, 0);
   const totalVisitMinutes = scheduled.reduce((sum, s) => sum + s.poi.avgVisitDurationMinutes, 0);
+  const googleMapsUrl = buildGoogleMapsUrl(scheduled, startLat, startLng, coords);
 
   useEffect(() => {
     if (!scriptLoaded || !mapDivRef.current || scheduled.length === 0) return;
@@ -166,6 +200,7 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
         stops.filter((s) => s.status === "pending" && infeasibleIds.includes(s.poiId)).map((s) => s.poi.name)
       );
       setRecommendation(data.recommendation ?? null);
+      setStartTimeAdjusted(data.startTimeAdjusted ?? null);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -251,6 +286,18 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
         <div className="lg:col-span-2 space-y-4">
           <div ref={mapDivRef} className="w-full h-[380px] sm:h-[500px] rounded-2xl overflow-hidden bg-gray-100 border border-gray-100" />
 
+          {googleMapsUrl && (
+            <a
+              href={googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-2xl text-sm font-bold text-white transition-all hover:opacity-90"
+              style={{ background: "#0B1210" }}
+            >
+              <Navigation size={15} /> Open turn-by-turn route in Google Maps <ExternalLink size={13} />
+            </a>
+          )}
+
           {/* Re-plan-from-here controls */}
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Re-plan from where you are</p>
@@ -295,6 +342,15 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
 
         {/* Ordered stop list */}
         <div className="space-y-4">
+          {startTimeAdjusted && (
+            <div className="rounded-2xl border p-4 flex gap-3" style={{ borderColor: "#E5E7EB", background: "#F9FAFB" }}>
+              <Info size={18} className="text-gray-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-gray-600">
+                It&apos;s already past {startTimeAdjusted.from} today, so we&apos;ve planned your day starting from now ({startTimeAdjusted.to}) instead.
+              </p>
+            </div>
+          )}
+
           {recommendation && !recommendationDismissed && (
             <div className="rounded-2xl border p-4 flex gap-3" style={{ borderColor: "#BFDBFE", background: "#EFF6FF" }}>
               <Lightbulb size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />

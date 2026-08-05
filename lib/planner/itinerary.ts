@@ -1,14 +1,25 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { itineraries, itineraryStops, pois, poiSpecialEvents } from "@/lib/db/schema";
-import { computeSequence, suggestEarlierStart, type SequenceStop, type SequenceResult } from "./sequence";
+import { computeSequence, suggestEarlierStart, parseTime, EARLIEST_FLOOR_MINUTES, type SequenceStop, type SequenceResult } from "./sequence";
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 const DEFAULT_START = { lat: 26.9124, lng: 75.7873 }; // Jaipur city center
 const DEFAULT_START_TIME = "09:00";
+const JAIPUR_TZ = "Asia/Kolkata";
 
 function weekdayKey(planDate: string): (typeof DAY_KEYS)[number] {
   return DAY_KEYS[new Date(`${planDate}T00:00:00`).getDay()];
+}
+
+// The server may run in any timezone (UTC on Vercel, whatever the dev
+// machine is set to, etc.) — this pilot is single-city, so we always need
+// Jaipur's actual local wall-clock time, not the server's.
+function nowInJaipur(): { date: string; time: string } {
+  const now = new Date();
+  const date = new Intl.DateTimeFormat("en-CA", { timeZone: JAIPUR_TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  const time = new Intl.DateTimeFormat("en-GB", { timeZone: JAIPUR_TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(now);
+  return { date, time };
 }
 
 interface StartOverride {
@@ -22,8 +33,14 @@ export interface EarlierStartRecommendation {
   reason: string;
 }
 
+export interface StartTimeAdjustment {
+  from: string;
+  to: string;
+}
+
 export interface ResequenceResult extends SequenceResult {
   recommendation: EarlierStartRecommendation | null;
+  startTimeAdjusted: StartTimeAdjustment | null;
 }
 
 export async function resequenceItinerary(itineraryId: string, override?: StartOverride): Promise<ResequenceResult> {
@@ -37,7 +54,7 @@ export async function resequenceItinerary(itineraryId: string, override?: StartO
     .where(and(eq(itineraryStops.itineraryId, itineraryId), eq(itineraryStops.status, "pending")));
 
   if (stopsRaw.length === 0) {
-    return { order: [], infeasible: [], recommendation: null };
+    return { order: [], infeasible: [], recommendation: null, startTimeAdjusted: null };
   }
 
   const poiIds = stopsRaw.map((r) => r.poi.id);
@@ -72,6 +89,21 @@ export async function resequenceItinerary(itineraryId: string, override?: StartO
     time: override?.time ?? itinerary.startTime ?? DEFAULT_START_TIME,
   };
 
+  // A requested start time that's already in the past (e.g. planning "today,
+  // 9:00 AM" at 4:40 PM) would otherwise produce a plan nobody could actually
+  // follow — clamp it up to the real current time in Jaipur instead.
+  const jaipurNow = nowInJaipur();
+  let startTimeAdjusted: StartTimeAdjustment | null = null;
+  let effectiveFloorMinutes = EARLIEST_FLOOR_MINUTES;
+  if (itinerary.planDate === jaipurNow.date) {
+    const nowMinutes = parseTime(jaipurNow.time);
+    effectiveFloorMinutes = Math.max(EARLIEST_FLOOR_MINUTES, nowMinutes);
+    if (parseTime(start.time) < nowMinutes) {
+      startTimeAdjusted = { from: start.time, to: jaipurNow.time };
+      start.time = jaipurNow.time;
+    }
+  }
+
   const result = computeSequence(sequenceStops, start);
 
   // "Start earlier" only makes sense before the day has begun — compute it on
@@ -79,7 +111,7 @@ export async function resequenceItinerary(itineraryId: string, override?: StartO
   // re-plan after the traveler is already out and about.
   let recommendation: EarlierStartRecommendation | null = null;
   if (itinerary.status === "draft") {
-    const suggestion = suggestEarlierStart(sequenceStops, start, result);
+    const suggestion = suggestEarlierStart(sequenceStops, start, result, effectiveFloorMinutes);
     if (suggestion) {
       const nameById = new Map(stopsRaw.map((r) => [r.poi.id, r.poi.name]));
       const resolvedNames = suggestion.resolvedPoiIds.map((id) => nameById.get(id)).filter((n): n is string => !!n);
@@ -117,5 +149,5 @@ export async function resequenceItinerary(itineraryId: string, override?: StartO
     await db.update(itineraries).set({ status: "active", updatedAt: new Date() }).where(eq(itineraries.id, itineraryId));
   }
 
-  return { ...result, recommendation };
+  return { ...result, recommendation, startTimeAdjusted };
 }

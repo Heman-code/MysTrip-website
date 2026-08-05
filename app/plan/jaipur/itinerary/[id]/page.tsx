@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { getItineraryForUser, getItineraryStopsWithPoi } from "@/lib/db/itineraries";
-import { resequenceItinerary, type EarlierStartRecommendation } from "@/lib/planner/itinerary";
+import { resequenceItinerary, type EarlierStartRecommendation, type StartTimeAdjustment } from "@/lib/planner/itinerary";
 import { toPoiCardData } from "@/lib/db/pois";
 import ItineraryClient from "./ItineraryClient";
 
@@ -27,10 +27,12 @@ export default async function ItineraryPage({ params }: PageProps) {
 
   let infeasiblePoiIds: string[] = [];
   let recommendation: EarlierStartRecommendation | null = null;
+  let startTimeAdjusted: StartTimeAdjustment | null = null;
   if (itinerary.status === "draft") {
     const result = await resequenceItinerary(id);
     infeasiblePoiIds = result.infeasible;
     recommendation = result.recommendation;
+    startTimeAdjusted = result.startTimeAdjusted;
   }
 
   const rows = await getItineraryStopsWithPoi(id);
@@ -76,6 +78,9 @@ export default async function ItineraryPage({ params }: PageProps) {
       initialStops={allStops}
       initialInfeasibleNames={infeasibleNames}
       initialRecommendation={recommendation}
+      initialStartTimeAdjusted={startTimeAdjusted}
+      startLat={itinerary.startLat !== null ? Number(itinerary.startLat) : null}
+      startLng={itinerary.startLng !== null ? Number(itinerary.startLng) : null}
     />
   );
 }

@@ -18,6 +18,19 @@ function todayISO(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// A hardcoded "09:00" default is fine for planning a future day, but for
+// *today* it's meaningless once that's already passed — default to "now,
+// rounded up" instead so the modal never opens on a stale default.
+function defaultStartTime(): string {
+  const d = new Date();
+  const nowMinutes = d.getHours() * 60 + d.getMinutes();
+  const nineAm = 9 * 60;
+  const target = nowMinutes < nineAm ? nineAm : Math.min(23 * 60 + 45, Math.ceil(nowMinutes / 15) * 15);
+  const h = Math.floor(target / 60);
+  const m = target % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
 const inputClass =
   "w-full px-3.5 py-2.5 rounded-xl text-sm text-gray-800 outline-none border border-gray-200 focus:border-orange-400 transition-colors bg-white";
 const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5";
@@ -25,12 +38,14 @@ const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking
 export default function StartItineraryModal({ itineraryId, shortlistedPois, onClose }: Props) {
   const router = useRouter();
   const [planDate, setPlanDate] = useState(todayISO());
-  const [startTime, setStartTime] = useState("09:00");
+  const [startTime, setStartTime] = useState(defaultStartTime);
   const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [manualNearPoiId, setManualNearPoiId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const isPastStartTime = planDate === todayISO() && startTime < defaultStartTime();
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
@@ -113,6 +128,9 @@ export default function StartItineraryModal({ itineraryId, shortlistedPois, onCl
           <div>
             <label className={labelClass}>What time do you want to start?</label>
             <input type="time" required value={startTime} onChange={(e) => setStartTime(e.target.value)} className={inputClass} />
+            {isPastStartTime && (
+              <p className="text-xs text-gray-400 mt-1.5">That time has already passed today — we&apos;ll start your plan from now instead.</p>
+            )}
           </div>
 
           <div>
