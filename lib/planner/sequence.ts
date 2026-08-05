@@ -1,5 +1,10 @@
 import { travelTimeMinutes, type LatLng } from "./geo";
 
+// Defaults to the pure haversine estimate so the algorithm (and its unit
+// tests) never need a network dependency — the DB-aware wrapper can pass a
+// real Distance-Matrix-backed function in for actual accuracy.
+export type TravelTimeFn = (a: LatLng, b: LatLng) => number;
+
 export interface DayHours {
   open: string;
   close: string;
@@ -58,7 +63,7 @@ interface SimResult {
   score: number;
 }
 
-function simulate(perm: SequenceStop[], start: StartPoint): SimResult {
+function simulate(perm: SequenceStop[], start: StartPoint, travelTimeFn: TravelTimeFn): SimResult {
   let currentLat = start.lat;
   let currentLng = start.lng;
   let currentTime = parseTime(start.time);
@@ -73,7 +78,7 @@ function simulate(perm: SequenceStop[], start: StartPoint): SimResult {
       return { feasible: false, arrivals, departures, score: Infinity };
     }
 
-    const travel = travelTimeMinutes({ lat: currentLat, lng: currentLng }, { lat: stop.lat, lng: stop.lng });
+    const travel = travelTimeFn({ lat: currentLat, lng: currentLng }, { lat: stop.lat, lng: stop.lng });
     const rawArrival = currentTime + travel;
     totalTravel += travel;
 
@@ -137,10 +142,14 @@ function permutations<T>(arr: T[]): T[][] {
   return result;
 }
 
-function bestFeasiblePermutation(stops: SequenceStop[], start: StartPoint): { perm: SequenceStop[]; sim: SimResult } | null {
+function bestFeasiblePermutation(
+  stops: SequenceStop[],
+  start: StartPoint,
+  travelTimeFn: TravelTimeFn
+): { perm: SequenceStop[]; sim: SimResult } | null {
   let best: { perm: SequenceStop[]; sim: SimResult } | null = null;
   for (const perm of permutations(stops)) {
-    const sim = simulate(perm, start);
+    const sim = simulate(perm, start, travelTimeFn);
     if (sim.feasible && (!best || sim.score < best.sim.score)) {
       best = { perm, sim };
     }
@@ -160,12 +169,16 @@ function leastSlackStop(stops: SequenceStop[]): SequenceStop {
 // so ≤40,320 permutations) this is fast and provably optimal, and — unlike a
 // greedy nearest-neighbor pass — it won't strand a plan on a stop that's
 // about to close or miss a fixed-time event window entirely.
-export function computeSequence(allStops: SequenceStop[], start: StartPoint): SequenceResult {
+export function computeSequence(
+  allStops: SequenceStop[],
+  start: StartPoint,
+  travelTimeFn: TravelTimeFn = travelTimeMinutes
+): SequenceResult {
   let remaining = allStops.filter((s) => s.openingHours.length > 0);
   const infeasible: string[] = allStops.filter((s) => s.openingHours.length === 0).map((s) => s.poiId);
 
   while (remaining.length > 0) {
-    const best = bestFeasiblePermutation(remaining, start);
+    const best = bestFeasiblePermutation(remaining, start, travelTimeFn);
     if (best) {
       return {
         order: best.perm.map((stop, i) => ({
@@ -180,7 +193,7 @@ export function computeSequence(allStops: SequenceStop[], start: StartPoint): Se
     // No ordering fits every stop — find one whose removal unblocks the rest.
     let culprit = remaining.find((candidate) => {
       const withoutCandidate = remaining.filter((s) => s.poiId !== candidate.poiId);
-      return withoutCandidate.length === 0 || bestFeasiblePermutation(withoutCandidate, start) !== null;
+      return withoutCandidate.length === 0 || bestFeasiblePermutation(withoutCandidate, start, travelTimeFn) !== null;
     });
     if (!culprit) culprit = leastSlackStop(remaining);
 
@@ -229,7 +242,8 @@ export function suggestEarlierStart(
   stops: SequenceStop[],
   start: StartPoint,
   baseResult: SequenceResult,
-  floorMinutes: number = EARLIEST_FLOOR_MINUTES
+  floorMinutes: number = EARLIEST_FLOOR_MINUTES,
+  travelTimeFn: TravelTimeFn = travelTimeMinutes
 ): EarlierStartSuggestion | null {
   const baseTime = parseTime(start.time);
   const baseTight = findTightMustSeeStops(stops, baseResult);
@@ -240,7 +254,7 @@ export function suggestEarlierStart(
     const candidateMinutes = Math.max(floorMinutes, baseTime - offset);
     if (candidateMinutes >= baseTime) continue; // already at the floor, no earlier option left to try
 
-    const candidateResult = computeSequence(stops, { ...start, time: formatTime(candidateMinutes) });
+    const candidateResult = computeSequence(stops, { ...start, time: formatTime(candidateMinutes) }, travelTimeFn);
 
     const resolvedPoiIds = baseResult.infeasible.filter((id) => !candidateResult.infeasible.includes(id));
     const candidateTight = findTightMustSeeStops(stops, candidateResult);

@@ -2,6 +2,8 @@ import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { itineraries, itineraryStops, pois, poiSpecialEvents } from "@/lib/db/schema";
 import { computeSequence, suggestEarlierStart, parseTime, EARLIEST_FLOOR_MINUTES, type SequenceStop, type SequenceResult } from "./sequence";
+import { travelTimeMinutes, type LatLng } from "./geo";
+import { fetchDistanceMatrixMinutes, buildMatrixLookup } from "./distanceMatrix";
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 const DEFAULT_START = { lat: 26.9124, lng: 75.7873 }; // Jaipur city center
@@ -41,6 +43,7 @@ export interface StartTimeAdjustment {
 export interface ResequenceResult extends SequenceResult {
   recommendation: EarlierStartRecommendation | null;
   startTimeAdjusted: StartTimeAdjustment | null;
+  travelTimesSource: "live" | "estimated";
 }
 
 export async function resequenceItinerary(itineraryId: string, override?: StartOverride): Promise<ResequenceResult> {
@@ -54,7 +57,7 @@ export async function resequenceItinerary(itineraryId: string, override?: StartO
     .where(and(eq(itineraryStops.itineraryId, itineraryId), eq(itineraryStops.status, "pending")));
 
   if (stopsRaw.length === 0) {
-    return { order: [], infeasible: [], recommendation: null, startTimeAdjusted: null };
+    return { order: [], infeasible: [], recommendation: null, startTimeAdjusted: null, travelTimesSource: "estimated" };
   }
 
   const poiIds = stopsRaw.map((r) => r.poi.id);
@@ -104,14 +107,38 @@ export async function resequenceItinerary(itineraryId: string, override?: StartO
     }
   }
 
-  const result = computeSequence(sequenceStops, start);
+  // Real road-network travel times instead of straight-line-distance guesses
+  // — a haversine estimate can be off by several times on routes with a
+  // genuine geographic detour (a lake, hills, one-ways). One batched request
+  // covers every pair the algorithm might need, reused across every
+  // permutation it tries, so this is a single API call per build/re-plan,
+  // not one per permutation. Falls back to the haversine estimate — for
+  // just the affected pairs, or entirely if the request fails — rather than
+  // breaking itinerary generation if the API is unavailable.
+  const points: LatLng[] = [{ lat: start.lat, lng: start.lng }, ...sequenceStops.map((s) => ({ lat: s.lat, lng: s.lng }))];
+  let travelTimesSource: "live" | "estimated" = "estimated";
+  let travelTimeFn = travelTimeMinutes;
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (apiKey) {
+    try {
+      const matrix = await fetchDistanceMatrixMinutes(points, apiKey);
+      if (matrix.size > 0) {
+        travelTimeFn = buildMatrixLookup(matrix, travelTimeMinutes);
+        travelTimesSource = "live";
+      }
+    } catch (err) {
+      console.error("Distance Matrix fetch failed, falling back to estimated travel times:", err);
+    }
+  }
+
+  const result = computeSequence(sequenceStops, start, travelTimeFn);
 
   // "Start earlier" only makes sense before the day has begun — compute it on
   // the first-ever sequencing (draft -> active), never on a Phase-5 mid-day
   // re-plan after the traveler is already out and about.
   let recommendation: EarlierStartRecommendation | null = null;
   if (itinerary.status === "draft") {
-    const suggestion = suggestEarlierStart(sequenceStops, start, result, effectiveFloorMinutes);
+    const suggestion = suggestEarlierStart(sequenceStops, start, result, effectiveFloorMinutes, travelTimeFn);
     if (suggestion) {
       const nameById = new Map(stopsRaw.map((r) => [r.poi.id, r.poi.name]));
       const resolvedNames = suggestion.resolvedPoiIds.map((id) => nameById.get(id)).filter((n): n is string => !!n);
@@ -149,5 +176,5 @@ export async function resequenceItinerary(itineraryId: string, override?: StartO
     await db.update(itineraries).set({ status: "active", updatedAt: new Date() }).where(eq(itineraries.id, itineraryId));
   }
 
-  return { ...result, recommendation, startTimeAdjusted };
+  return { ...result, recommendation, startTimeAdjusted, travelTimesSource };
 }

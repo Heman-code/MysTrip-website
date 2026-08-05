@@ -28,11 +28,13 @@ export default async function ItineraryPage({ params }: PageProps) {
   let infeasiblePoiIds: string[] = [];
   let recommendation: EarlierStartRecommendation | null = null;
   let startTimeAdjusted: StartTimeAdjustment | null = null;
+  let travelTimesSource: "live" | "estimated" | null = null;
   if (itinerary.status === "draft") {
     const result = await resequenceItinerary(id);
     infeasiblePoiIds = result.infeasible;
     recommendation = result.recommendation;
     startTimeAdjusted = result.startTimeAdjusted;
+    travelTimesSource = result.travelTimesSource;
   }
 
   const rows = await getItineraryStopsWithPoi(id);
@@ -79,6 +81,7 @@ export default async function ItineraryPage({ params }: PageProps) {
       initialInfeasibleNames={infeasibleNames}
       initialRecommendation={recommendation}
       initialStartTimeAdjusted={startTimeAdjusted}
+      initialTravelTimesSource={travelTimesSource}
       startLat={itinerary.startLat !== null ? Number(itinerary.startLat) : null}
       startLng={itinerary.startLng !== null ? Number(itinerary.startLng) : null}
     />

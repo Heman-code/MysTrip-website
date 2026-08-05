@@ -7,7 +7,7 @@ import Script from "next/script";
 import { Clock, MapPin, AlertTriangle, Check, X, Navigation, Loader2, Lightbulb, Route, ExternalLink, Info } from "lucide-react";
 import type { PoiCardData } from "@/lib/db/pois";
 import type { EarlierStartRecommendation, StartTimeAdjustment } from "@/lib/planner/itinerary";
-import { travelTimeMinutes, haversineDistanceKm } from "@/lib/planner/geo";
+import { parseTime } from "@/lib/planner/sequence";
 
 interface StopEntry {
   stopId: string;
@@ -26,6 +26,7 @@ interface Props {
   initialInfeasibleNames: string[];
   initialRecommendation: EarlierStartRecommendation | null;
   initialStartTimeAdjusted: StartTimeAdjustment | null;
+  initialTravelTimesSource: "live" | "estimated" | null;
   startLat: number | null;
   startLng: number | null;
 }
@@ -66,7 +67,7 @@ function buildGoogleMapsUrl(
   return `https://www.google.com/maps/dir/?${params.toString()}`;
 }
 
-export default function ItineraryClient({ itineraryId, planDate, initialStops, initialInfeasibleNames, initialRecommendation, initialStartTimeAdjusted, startLat, startLng }: Props) {
+export default function ItineraryClient({ itineraryId, planDate, initialStops, initialInfeasibleNames, initialRecommendation, initialStartTimeAdjusted, initialTravelTimesSource, startLat, startLng }: Props) {
   const mapDivRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
@@ -78,6 +79,7 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
   const [recommendation, setRecommendation] = useState<EarlierStartRecommendation | null>(initialRecommendation);
   const [recommendationDismissed, setRecommendationDismissed] = useState(false);
   const [startTimeAdjusted, setStartTimeAdjusted] = useState<StartTimeAdjustment | null>(initialStartTimeAdjusted);
+  const [travelTimesSource, setTravelTimesSource] = useState<"live" | "estimated" | null>(initialTravelTimesSource);
   const [resequencing, setResequencing] = useState(false);
   const [busyStopId, setBusyStopId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -90,12 +92,14 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
   const unscheduled = pending.filter((s) => !s.plannedArrival);
   const history = stops.filter((s) => s.status !== "pending");
 
+  // Derived from the actual scheduled times (arrival[i+1] - departure[i]),
+  // not a separate distance calculation — this is always consistent with
+  // whatever the algorithm actually used (live Distance Matrix data when
+  // available, haversine fallback otherwise), never a second, possibly
+  // conflicting estimate sitting next to the real schedule.
   const legs = scheduled.slice(1).map((stop, i) => {
     const prev = scheduled[i];
-    return {
-      minutes: travelTimeMinutes({ lat: prev.poi.latitude, lng: prev.poi.longitude }, { lat: stop.poi.latitude, lng: stop.poi.longitude }),
-      km: haversineDistanceKm({ lat: prev.poi.latitude, lng: prev.poi.longitude }, { lat: stop.poi.latitude, lng: stop.poi.longitude }),
-    };
+    return { minutes: parseTime(stop.plannedArrival!) - parseTime(prev.plannedDeparture!) };
   });
   const totalTravelMinutes = legs.reduce((sum, l) => sum + l.minutes, 0);
   const totalVisitMinutes = scheduled.reduce((sum, s) => sum + s.poi.avgVisitDurationMinutes, 0);
@@ -201,6 +205,7 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
       );
       setRecommendation(data.recommendation ?? null);
       setStartTimeAdjusted(data.startTimeAdjusted ?? null);
+      setTravelTimesSource(data.travelTimesSource ?? null);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -378,16 +383,23 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
           )}
 
           {scheduled.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5 text-gray-500">
-                <Route size={13} /> {totalTravelMinutes} min travel
+            <div className="bg-white rounded-2xl border border-gray-100 p-4">
+              <div className="flex items-center gap-4 text-xs flex-wrap">
+                <div className="flex items-center gap-1.5 text-gray-500">
+                  <Route size={13} /> {totalTravelMinutes} min travel
+                </div>
+                <div className="text-gray-300">·</div>
+                <div className="text-gray-500">{totalVisitMinutes} min visiting</div>
+                <div className="text-gray-300">·</div>
+                <div className="text-gray-500">
+                  {scheduled[0].plannedArrival} → {scheduled[scheduled.length - 1].plannedDeparture}
+                </div>
               </div>
-              <div className="text-gray-300">·</div>
-              <div className="text-gray-500">{totalVisitMinutes} min visiting</div>
-              <div className="text-gray-300">·</div>
-              <div className="text-gray-500">
-                {scheduled[0].plannedArrival} → {scheduled[scheduled.length - 1].plannedDeparture}
-              </div>
+              {travelTimesSource && (
+                <p className="text-[10px] text-gray-400 mt-1.5">
+                  {travelTimesSource === "live" ? "Travel times: real road data from Google" : "Travel times: estimated (live data unavailable)"}
+                </p>
+              )}
             </div>
           )}
 
@@ -455,7 +467,7 @@ export default function ItineraryClient({ itineraryId, planDate, initialStops, i
               {i < legs.length && (
                 <div className="flex items-center gap-1.5 text-[11px] text-gray-400 pl-4 py-1.5">
                   <Route size={11} />
-                  {legs[i].minutes} min · {legs[i].km.toFixed(1)} km to next stop
+                  {legs[i].minutes} min to next stop
                 </div>
               )}
               </div>
