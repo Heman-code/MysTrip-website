@@ -5,7 +5,7 @@ import {
 
 // ─── ENUMS ────────────────────────────────────────────────────────────────────
 
-export const userRoleEnum       = pgEnum("user_role",         ["user", "admin"]);
+export const userRoleEnum       = pgEnum("user_role",         ["user", "admin", "super_admin"]);
 export const adminRoleEnum      = pgEnum("admin_role",        ["super_admin", "sundarone_admin"]);
 export const tripSourceEnum     = pgEnum("trip_source",       ["mystrip", "sundarone"]);
 export const tripCategoryEnum   = pgEnum("trip_category",     ["day_exploration", "parents_event", "trek", "weekend_escape", "post_midterm", "post_endterm"]);

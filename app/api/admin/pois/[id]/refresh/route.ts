@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { pois } from "@/lib/db/schema";
 import { fetchPlaceDetails, mapPlaceDetails } from "@/lib/planner/googlePlaces";
+import { isAdminRole } from "@/lib/admin-auth";
 
 export async function POST(
   _req: NextRequest,
@@ -12,7 +13,7 @@ export async function POST(
 ) {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!session || role !== "admin") {
+  if (!session || !isAdminRole(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

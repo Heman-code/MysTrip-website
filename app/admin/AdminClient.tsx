@@ -134,6 +134,7 @@ export interface AdminPoiRow {
 }
 
 interface Props {
+  currentUser: { id: string; role: string };
   stats: { totalUsers: number; totalBookings: number; pendingReviews: number; pendingRegistrations: number };
   users: UserRow[];
   pendingReviews: ReviewRow[];
@@ -146,9 +147,11 @@ interface Props {
 
 const tabs = ["Overview", "Users", "Review Approvals", "Registrations", "Trips", "Jaipur POIs", "Ambassadors"];
 
-export default function AdminClient({ stats, users, pendingReviews, pendingRegistrations, confirmedRegistrations, trips: initialTrips, pois: initialPois, ambassadors: initialAmbassadors }: Props) {
+export default function AdminClient({ currentUser, stats, users: initialUsers, pendingReviews, pendingRegistrations, confirmedRegistrations, trips: initialTrips, pois: initialPois, ambassadors: initialAmbassadors }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
+  const [users, setUsers] = useState(initialUsers);
+  const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null);
   const [reviews, setReviews] = useState(pendingReviews);
   const [approving, setApproving] = useState<string | null>(null);
   const [registrations, setRegistrations] = useState(pendingRegistrations);
@@ -333,6 +336,19 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
     setReviewingReg(null);
   };
 
+  const updateUserRole = async (id: string, role: "admin" | "user") => {
+    setUpdatingRoleId(id);
+    const res = await fetch(`/api/admin/users/${id}/role`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role }),
+    });
+    if (res.ok) {
+      setUsers((us) => us.map((u) => (u.id === id ? { ...u, role } : u)));
+    }
+    setUpdatingRoleId(null);
+  };
+
   return (
     <div className="min-h-screen" style={{ background: "#F9F7F4" }}>
       {/* Header */}
@@ -425,7 +441,7 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    {["Name", "Email", "College", "Role", "Joined"].map((h) => (
+                    {["Name", "Email", "College", "Role", "Joined", ...(currentUser.role === "super_admin" ? ["Actions"] : [])].map((h) => (
                       <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                         {h}
                       </th>
@@ -442,7 +458,9 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
                         <span
                           className="px-2.5 py-1 rounded-full text-xs font-bold"
                           style={
-                            u.role === "admin"
+                            u.role === "super_admin"
+                              ? { background: "rgba(139,92,246,0.1)", color: "#8b5cf6" }
+                              : u.role === "admin"
                               ? { background: "rgba(255,96,22,0.1)", color: "#FF6016" }
                               : { background: "#f1f5f9", color: "#64748b" }
                           }
@@ -453,11 +471,33 @@ export default function AdminClient({ stats, users, pendingReviews, pendingRegis
                       <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
                         {new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                       </td>
+                      {currentUser.role === "super_admin" && (
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {u.role === "super_admin" || u.id === currentUser.id ? null : u.role === "admin" ? (
+                            <button
+                              onClick={() => updateUserRole(u.id, "user")}
+                              disabled={updatingRoleId === u.id}
+                              className="text-xs font-semibold text-red-500 hover:text-red-600 disabled:opacity-50"
+                            >
+                              {updatingRoleId === u.id ? "Revoking…" : "Revoke Admin"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => updateUserRole(u.id, "admin")}
+                              disabled={updatingRoleId === u.id}
+                              className="text-xs font-semibold hover:opacity-80 disabled:opacity-50"
+                              style={{ color: "#FF6016" }}
+                            >
+                              {updatingRoleId === u.id ? "Saving…" : "Make Admin"}
+                            </button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
                   {users.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-400">No members yet.</td>
+                      <td colSpan={currentUser.role === "super_admin" ? 6 : 5} className="px-6 py-12 text-center text-gray-400">No members yet.</td>
                     </tr>
                   )}
                 </tbody>

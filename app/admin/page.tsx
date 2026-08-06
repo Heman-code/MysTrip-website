@@ -7,6 +7,7 @@ import { eq, count, desc } from "drizzle-orm";
 import { getAllDbTripsForAdmin } from "@/lib/db/trips";
 import { getAllPoisWithEventsForAdmin, type EntryFees } from "@/lib/db/pois";
 import { getAllAmbassadorsForAdmin } from "@/lib/db/ambassadors";
+import { isAdminRole } from "@/lib/admin-auth";
 import AdminClient from "./AdminClient";
 
 export const metadata: Metadata = {
@@ -16,7 +17,8 @@ export const metadata: Metadata = {
 export default async function AdminPage() {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!session || role !== "admin") redirect("/");
+  if (!session || !isAdminRole(role)) redirect("/");
+  const currentUserId = (session.user as { id?: string }).id ?? "";
 
   const [[{ total: totalUsers }], [{ total: totalBookings }], [{ total: pendingReviews }], [{ total: pendingRegistrations }], allUsers, rawReviews, rawRegistrations, rawConfirmedRegistrations, allTrips, allPoisWithEvents] =
     await Promise.all([
@@ -95,6 +97,7 @@ export default async function AdminPage() {
 
   return (
     <AdminClient
+      currentUser={{ id: currentUserId, role: role ?? "user" }}
       stats={{
         totalUsers: Number(totalUsers),
         totalBookings: Number(totalBookings),

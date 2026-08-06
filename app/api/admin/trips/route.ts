@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { trips } from "@/lib/db/schema";
+import { isAdminRole } from "@/lib/admin-auth";
 
 function slugify(input: string) {
   return input
@@ -27,7 +28,7 @@ async function uniqueSlug(base: string) {
 export async function POST(req: NextRequest) {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!session || role !== "admin") {
+  if (!session || !isAdminRole(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

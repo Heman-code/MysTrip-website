@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { ambassadors, payouts, registrations } from "@/lib/db/schema";
 import { computeCommission } from "@/lib/ambassadors";
+import { isAdminRole } from "@/lib/admin-auth";
 
 // Manual attribution for the current WhatsApp-based flow: the admin logs
 // "this booking / this amount was referred by this code" after the fact.
@@ -21,7 +22,7 @@ export async function POST(
 ) {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!session || role !== "admin") {
+  if (!session || !isAdminRole(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

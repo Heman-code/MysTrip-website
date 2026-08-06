@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { referralClicks } from "@/lib/db/schema";
 import { REFERRAL_COOKIE, getActiveAmbassadorByCode } from "@/lib/referral";
+import { isAdminRole } from "@/lib/admin-auth";
 
 const REFERRAL_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
@@ -20,7 +21,7 @@ export default auth(async (req) => {
 
   if (pathname.startsWith("/admin")) {
     const role = (req.auth?.user as { role?: string } | undefined)?.role;
-    if (!isLoggedIn || role !== "admin") {
+    if (!isLoggedIn || !isAdminRole(role)) {
       return NextResponse.redirect(new URL("/", req.url));
     }
   }

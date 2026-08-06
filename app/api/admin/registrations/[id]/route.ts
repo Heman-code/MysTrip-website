@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { payouts, registrations, trips } from "@/lib/db/schema";
 import { sendServerEvent } from "@/lib/ga4-server";
+import { isAdminRole } from "@/lib/admin-auth";
 
 export async function PATCH(
   req: NextRequest,
@@ -12,7 +13,7 @@ export async function PATCH(
 ) {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!session || role !== "admin") {
+  if (!session || !isAdminRole(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
