@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { Menu, X, ChevronDown, LogOut, LayoutDashboard, ShieldCheck } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import { isAdminRole } from "@/lib/admin-auth";
 
 const links = [
   { label: "Trips", href: "/trips" },
@@ -41,7 +42,7 @@ export default function Navbar() {
   const initials = user?.name
     ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
-  const isAdmin = (user as { role?: string } | undefined)?.role === "admin";
+  const isAdmin = isAdminRole((user as { role?: string } | undefined)?.role);
 
   return (
     <nav
