@@ -21,6 +21,10 @@ export default function HeroSection() {
   const [wordVisible, setWordVisible] = useState(true);
   const [bgIndex, setBgIndex] = useState(0);
   const [bgFade, setBgFade] = useState(true);
+  // Only the first background (the one present at initial paint) is LCP-critical
+  // and worth a high-priority fetch — later cycles swap in well after load and
+  // shouldn't jump the queue ahead of whatever the user's doing next.
+  const [isFirstBg, setIsFirstBg] = useState(true);
 
   useEffect(() => {
     const wordTimer = setInterval(() => {
@@ -39,6 +43,7 @@ export default function HeroSection() {
       setTimeout(() => {
         setBgIndex((i) => (i + 1) % heroBgs.length);
         setBgFade(true);
+        setIsFirstBg(false);
       }, 600);
     }, 5000);
     return () => clearInterval(bgTimer);
@@ -58,8 +63,9 @@ export default function HeroSection() {
           fill
           sizes="100vw"
           className="object-cover object-center"
-          priority
-          fetchPriority="high"
+          priority={isFirstBg}
+          fetchPriority={isFirstBg ? "high" : "auto"}
+          loading={isFirstBg ? undefined : "eager"}
           quality={75}
         />
       </div>
