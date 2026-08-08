@@ -30,7 +30,7 @@ export default async function TripsPage() {
       {/* Hero */}
       <section className="relative pt-20 pb-10 sm:pt-28 sm:pb-16 overflow-hidden" style={{ background: "#0B1210" }}>
         <div className="absolute inset-0 opacity-20">
-          <Image src="/trips/hero-kedarkantha-blizzard-2.jpg" alt="" fill sizes="100vw" className="object-cover object-top" priority />
+          <Image src="/trips/hero-kedarkantha-blizzard-2.webp" alt="" fill sizes="100vw" className="object-cover object-top" priority />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#0B1210]/60 via-[#0B1210]/80 to-[#0B1210]" />
 

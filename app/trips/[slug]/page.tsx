@@ -48,7 +48,7 @@ const diffColors: Record<string, { bg: string; text: string }> = {
   Hard:     { bg: "#fee2e2", text: "#991b1b" },
 };
 
-const FALLBACK_COVER = "/trips/hero-udaipur-cliff-group-2.jpg";
+const FALLBACK_COVER = "/trips/hero-udaipur-cliff-group-2.webp";
 
 export default async function TripDetailPage({ params }: Props) {
   const { slug } = await params;

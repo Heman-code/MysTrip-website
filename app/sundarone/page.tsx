@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     title: "Sundarone Tribe — Travel Community for MUJ Students",
     description: "Your hostel. Your community. Your adventures.",
     url: "https://www.mystrip.in/sundarone",
-    images: ["/trips/sundarone-hero-cliff.jpg"],
+    images: ["/trips/sundarone-hero-cliff.webp"],
   },
 };
 
@@ -127,7 +127,7 @@ export default async function SundaronePage() {
         {/* Real photo — full-bleed on mobile/tablet, right 45% panel fading left on desktop */}
         <div className="absolute inset-0 lg:inset-auto lg:right-0 lg:top-0 lg:h-full lg:w-[45%]">
           <Image
-            src="/trips/sundarone-hero-cliff.jpg"
+            src="/trips/sundarone-hero-cliff.webp"
             alt=""
             fill
             className="object-cover"
@@ -258,14 +258,14 @@ export default async function SundaronePage() {
 
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
               <div className="relative aspect-[3/4] rounded-xl sm:rounded-2xl overflow-hidden">
-                <Image src="/trips/sundarone-hero-cliff.jpg" alt="Udaipur trip" fill className="object-cover" sizes="(max-width: 640px) 45vw, 25vw" />
+                <Image src="/trips/sundarone-hero-cliff.webp" alt="Udaipur trip" fill className="object-cover" sizes="(max-width: 640px) 45vw, 25vw" />
               </div>
               <div className="flex flex-col gap-2.5 sm:gap-3 sm:pt-8">
                 <div className="relative aspect-square rounded-xl sm:rounded-2xl overflow-hidden">
-                  <Image src="/trips/card-kedarkantha-snow-camp.jpg" alt="Achrol Fort Trek" fill className="object-cover" sizes="(max-width: 640px) 40vw, 20vw" />
+                  <Image src="/trips/card-kedarkantha-snow-camp.webp" alt="Achrol Fort Trek" fill className="object-cover" sizes="(max-width: 640px) 40vw, 20vw" />
                 </div>
                 <div className="relative aspect-square rounded-xl sm:rounded-2xl overflow-hidden">
-                  <Image src="/trips/gallery-kedarkantha-peaks-2.jpg" alt="Twin Tower Trek" fill className="object-cover" sizes="(max-width: 640px) 40vw, 20vw" />
+                  <Image src="/trips/gallery-kedarkantha-peaks-2.webp" alt="Twin Tower Trek" fill className="object-cover" sizes="(max-width: 640px) 40vw, 20vw" />
                 </div>
               </div>
             </div>
@@ -341,7 +341,7 @@ export default async function SundaronePage() {
 
               <div className="w-full lg:w-72 flex-shrink-0">
                 <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-                  <Image src="/trips/gallery-banki-circle-aerial.jpg" alt="Community" fill className="object-cover" sizes="300px" />
+                  <Image src="/trips/gallery-banki-circle-aerial.webp" alt="Community" fill className="object-cover" sizes="300px" />
                   <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,61,89,0.85) 0%, transparent 55%)" }} />
                   <div className="absolute bottom-5 left-5 right-5">
                     <p className="text-white font-bold text-sm leading-snug" style={{ fontFamily: "'Clash Display', sans-serif" }}>

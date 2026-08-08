@@ -9,11 +9,11 @@ const cyclingWords = ["Strangers.", "Friends.", "A Tribe.", "Your People."];
 
 // Hero bg cycles through real trip photos
 const heroBgs = [
-  { src: "/trips/hero-udaipur-cliff-group-2.jpg",    label: "Udaipur" },
-  { src: "/trips/hero-kedarkantha-blizzard-2.jpg",   label: "Kedarkantha Trek" },
-  { src: "/trips/hero-jaisalmer-sunset-2.jpg",       label: "Jaisalmer" },
-  { src: "/trips/hero-mount-sumel-sunset-2.jpg",     label: "Mount Sumel" },
-  { src: "/trips/hero-raghunath-drone-2.jpg",        label: "Raghunath Fort" },
+  { src: "/trips/hero-udaipur-cliff-group-2.webp",    label: "Udaipur" },
+  { src: "/trips/hero-kedarkantha-blizzard-2.webp",   label: "Kedarkantha Trek" },
+  { src: "/trips/hero-jaisalmer-sunset-2.webp",       label: "Jaisalmer" },
+  { src: "/trips/hero-mount-sumel-sunset-2.webp",     label: "Mount Sumel" },
+  { src: "/trips/hero-raghunath-drone-2.webp",        label: "Raghunath Fort" },
 ];
 
 export default function HeroSection() {

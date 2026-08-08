@@ -7,7 +7,7 @@ export default function Footer() {
     <footer style={{ background: "#01180F" }} className="text-white relative overflow-hidden">
       {/* Mascot watermark */}
       <div className="absolute right-0 bottom-0 w-80 h-80 opacity-[0.05] pointer-events-none select-none">
-        <Image src="/logos/mascot-orange.png" alt="" fill sizes="320px" className="object-contain object-right-bottom" aria-hidden />
+        <Image src="/logos/mascot-orange.webp" alt="" fill sizes="320px" className="object-contain object-right-bottom" aria-hidden />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 sm:pt-16 sm:pb-10">
@@ -26,7 +26,7 @@ export default function Footer() {
               */}
               <div className="relative overflow-hidden flex-shrink-0 w-[39px] h-[43px] sm:w-[47px] sm:h-[52px]">
                 <Image
-                  src="/logos/mascot-orange.png"
+                  src="/logos/mascot-orange.webp"
                   alt="MysTrip"
                   width={127}
                   height={127}
@@ -42,7 +42,7 @@ export default function Footer() {
               */}
               <div className="relative overflow-hidden flex-shrink-0 w-[111px] h-[27px] sm:w-[134px] sm:h-[33px]">
                 <Image
-                  src="/logos/wordmark-orange.png"
+                  src="/logos/wordmark-orange.webp"
                   alt=""
                   width={239}
                   height={239}

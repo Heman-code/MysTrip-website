@@ -52,12 +52,12 @@ const steps = [
 ];
 
 const galleryPhotos = [
-  { src: "/trips/gallery-kedarkantha-boots.jpg", alt: "Kedarkantha trek, boots in the snow" },
-  { src: "/trips/gallery-sumel-campfire.jpg", alt: "Campfire night at Mount Sumel" },
-  { src: "/trips/gallery-udaipur-friends.jpg", alt: "Friends made on the Udaipur trip" },
-  { src: "/trips/gallery-jaisalmer-group.jpg", alt: "Group at Jaisalmer Fort" },
-  { src: "/trips/gallery-saan-helping-hands.jpg", alt: "Helping hands on the Saan Valley trail" },
-  { src: "/trips/gallery-raghunath-smile.jpg", alt: "A smile at Raghunath Fort" },
+  { src: "/trips/gallery-kedarkantha-boots.webp", alt: "Kedarkantha trek, boots in the snow" },
+  { src: "/trips/gallery-sumel-campfire.webp", alt: "Campfire night at Mount Sumel" },
+  { src: "/trips/gallery-udaipur-friends.webp", alt: "Friends made on the Udaipur trip" },
+  { src: "/trips/gallery-jaisalmer-group.webp", alt: "Group at Jaisalmer Fort" },
+  { src: "/trips/gallery-saan-helping-hands.webp", alt: "Helping hands on the Saan Valley trail" },
+  { src: "/trips/gallery-raghunath-smile.webp", alt: "A smile at Raghunath Fort" },
 ];
 
 const stats = [
@@ -73,7 +73,7 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="relative min-h-[70vh] sm:min-h-[80vh] flex flex-col justify-end overflow-hidden">
         <Image
-          src="/trips/hero-raghunath-drone-2.jpg"
+          src="/trips/hero-raghunath-drone-2.webp"
           alt="MysTrip travellers at Raghunath Fort"
           fill
           priority
@@ -135,7 +135,7 @@ export default function AboutPage() {
           </div>
           <div className="relative rounded-2xl overflow-hidden aspect-[4/5]">
             <Image
-              src="/trips/gallery-kedarkantha-peaks-2.jpg"
+              src="/trips/gallery-kedarkantha-peaks-2.webp"
               alt="A student looking out at the Kedarkantha peaks"
               fill
               className="object-cover"
@@ -190,7 +190,7 @@ export default function AboutPage() {
           </div>
           <div className="relative rounded-2xl overflow-hidden aspect-[4/5]">
             <Image
-              src="/trips/hatni-kund.png"
+              src="/trips/hatni-kund.webp"
               alt="The very first MysTrip trek — Hatni Kund, 1st March 2025"
               fill
               className="object-cover"
@@ -205,7 +205,7 @@ export default function AboutPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-8 md:gap-14 items-center">
           <div className="relative rounded-2xl overflow-hidden aspect-[4/5] order-2 md:order-1">
             <Image
-              src="/trips/gallery-sumel-girls-breakfast.jpg"
+              src="/trips/gallery-sumel-girls-breakfast.webp"
               alt="Breakfast with the tribe at Mount Sumel"
               fill
               className="object-cover"

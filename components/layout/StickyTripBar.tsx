@@ -85,10 +85,11 @@ export default function StickyTripBar({ trip }: { trip: TripCardData | null }) {
         <Link
           href={`/trips/${trip.slug}`}
           onClick={() => trackEvent("sticky_bar_click", { trip_slug: trip.slug })}
+          aria-label={`Register for ${trip.title}`}
           className="flex items-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-bold text-white flex-shrink-0 transition-opacity hover:opacity-90"
           style={{ background: "#FF6016" }}
         >
-          <span className="hidden sm:inline">Register</span>
+          <span className="hidden sm:inline" aria-hidden="true">Register</span>
           <ArrowRight size={13} />
         </Link>
         <button onClick={close} className="p-1 rounded-full hover:bg-white/10 transition-colors flex-shrink-0" aria-label="Dismiss">

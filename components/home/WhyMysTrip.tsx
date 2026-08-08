@@ -131,7 +131,7 @@ export default function WhyMysTrip() {
           style={{ background: "#01574A" }}
         >
           <div className="absolute right-0 top-0 bottom-0 w-48 opacity-10 pointer-events-none select-none">
-            <Image src="/logo-mark.png" alt="" fill sizes="192px" className="object-contain object-right" aria-hidden />
+            <Image src="/logo-mark.webp" alt="" fill sizes="192px" className="object-contain object-right" aria-hidden />
           </div>
           <div className="flex-1 relative">
             <p className="text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3" style={{ color: "#FFB001" }}>

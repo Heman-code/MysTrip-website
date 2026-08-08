@@ -2,7 +2,7 @@ import { and, asc, eq, gte, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { trips } from "@/lib/db/schema";
 
-const FALLBACK_COVER = "/trips/hero-udaipur-cliff-group-2.jpg";
+const FALLBACK_COVER = "/trips/hero-udaipur-cliff-group-2.webp";
 
 // Normalized, already-defaulted shape for display components (cards, listings).
 export interface TripCardData {

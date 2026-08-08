@@ -32,7 +32,7 @@ export interface PoiCardData {
   isActive: boolean;
 }
 
-const FALLBACK_COVER = "/trips/hero-udaipur-cliff-group-2.jpg";
+const FALLBACK_COVER = "/trips/hero-udaipur-cliff-group-2.webp";
 
 export function toPoiCardData(p: typeof pois.$inferSelect): PoiCardData {
   return {

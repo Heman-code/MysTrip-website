@@ -61,7 +61,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center group">
             <div className="relative overflow-hidden flex-shrink-0 w-[113px] h-7 sm:w-[145px] sm:h-9">
               <Image
-                src="/logos/wordmark-orange.png"
+                src="/logos/wordmark-orange.webp"
                 alt="MysTrip"
                 width={259}
                 height={259}

@@ -268,7 +268,7 @@ export default function PoiForm({ poi, onClose, onSaved }: Props) {
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>Cover Image URL</label>
-              <input className={inputClass} value={form.coverImage} onChange={(e) => set("coverImage", e.target.value)} placeholder="/pois/amer-fort.jpg" />
+              <input className={inputClass} value={form.coverImage} onChange={(e) => set("coverImage", e.target.value)} placeholder="/pois/amer-fort.webp" />
             </div>
           </div>
 

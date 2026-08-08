@@ -53,7 +53,7 @@ function LoginForm() {
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col p-12 overflow-hidden">
         <Image
-          src="/trips/hero-kedarkantha-blizzard-2.jpg"
+          src="/trips/hero-kedarkantha-blizzard-2.webp"
           alt="The Mountains Await"
           fill
           className="object-cover"

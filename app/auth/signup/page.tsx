@@ -77,7 +77,7 @@ export default function SignupPage() {
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#0B1210" }}>
         <div className="text-center max-w-md">
           <div className="w-20 h-20 mx-auto mb-6 relative">
-            <Image src="/logos/mascot-orange.png" alt="MysTrip" fill className="object-contain" sizes="80px" />
+            <Image src="/logos/mascot-orange.webp" alt="MysTrip" fill className="object-contain" sizes="80px" />
           </div>
           <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: "rgba(255,96,22,0.15)" }}>
             <CheckCircle2 size={24} style={{ color: "#FF6016" }} />
@@ -140,7 +140,7 @@ export default function SignupPage() {
       {/* Left — photo panel (desktop only) */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col p-12 overflow-hidden">
         <Image
-          src="/trips/gallery-saan-helping-hands.jpg"
+          src="/trips/gallery-saan-helping-hands.webp"
           alt="The Tribe"
           fill
           className="object-cover"

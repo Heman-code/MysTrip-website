@@ -4,18 +4,18 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 const photos = [
-  { src: "/trips/gallery-saan-helping-hands.jpg",     label: "Saan Valley",      size: "tall" },
-  { src: "/trips/gallery-banki-ridge-line.jpg",       label: "Ban ki Ghati",     size: "square" },
-  { src: "/trips/gallery-udaipur-friends.jpg",        label: "Udaipur",          size: "square" },
-  { src: "/trips/gallery-jaisalmer-group.jpg",        label: "Jaisalmer",        size: "wide" },
-  { src: "/trips/gallery-kedarkantha-peaks-2.jpg",      label: "Kedarkantha Trek", size: "square" },
-  { src: "/trips/gallery-sumel-campfire.jpg",         label: "Mount Sumel",      size: "tall" },
-  { src: "/trips/gallery-banki-circle-aerial.jpg",    label: "Ban ki Ghati",     size: "wide" },
-  { src: "/trips/gallery-kedarkantha-boots.jpg",      label: "Kedarkantha Trek", size: "square" },
-  { src: "/trips/gallery-raghunath-smile.jpg",        label: "Raghunath Fort",   size: "square" },
-  { src: "/trips/gallery-jaisalmer-fort-interior.jpg",label: "Jaisalmer Fort",   size: "square" },
-  { src: "/trips/gallery-saan-forest-walk.jpg",       label: "Saan Valley",      size: "tall" },
-  { src: "/trips/gallery-sumel-girls-breakfast.jpg",  label: "Mount Sumel",      size: "square" },
+  { src: "/trips/gallery-saan-helping-hands.webp",     label: "Saan Valley",      size: "tall" },
+  { src: "/trips/gallery-banki-ridge-line.webp",       label: "Ban ki Ghati",     size: "square" },
+  { src: "/trips/gallery-udaipur-friends.webp",        label: "Udaipur",          size: "square" },
+  { src: "/trips/gallery-jaisalmer-group.webp",        label: "Jaisalmer",        size: "wide" },
+  { src: "/trips/gallery-kedarkantha-peaks-2.webp",      label: "Kedarkantha Trek", size: "square" },
+  { src: "/trips/gallery-sumel-campfire.webp",         label: "Mount Sumel",      size: "tall" },
+  { src: "/trips/gallery-banki-circle-aerial.webp",    label: "Ban ki Ghati",     size: "wide" },
+  { src: "/trips/gallery-kedarkantha-boots.webp",      label: "Kedarkantha Trek", size: "square" },
+  { src: "/trips/gallery-raghunath-smile.webp",        label: "Raghunath Fort",   size: "square" },
+  { src: "/trips/gallery-jaisalmer-fort-interior.webp",label: "Jaisalmer Fort",   size: "square" },
+  { src: "/trips/gallery-saan-forest-walk.webp",       label: "Saan Valley",      size: "tall" },
+  { src: "/trips/gallery-sumel-girls-breakfast.webp",  label: "Mount Sumel",      size: "square" },
 ];
 
 export default function TribeGallery() {

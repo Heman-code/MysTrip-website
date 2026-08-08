@@ -68,7 +68,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     maxSlots: 35,
     bookedSlots: 0,
     difficulty: "Moderate",
-    coverImage: "/trips/gallery-saan-forest-walk.jpg",
+    coverImage: "/trips/gallery-saan-forest-walk.webp",
     shortDescription:
       "4:30 AM departure. Aravali sunrise over ancient waterholes. Back before noon. Your morning has never been this alive.",
     longDescription:
@@ -106,7 +106,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     maxSlots: 40,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-jaisalmer-local.jpg",
+    coverImage: "/trips/card-jaisalmer-local.webp",
     shortDescription:
       "Pushkar during Janmashtami — a sacred lake, a camel bazaar, a 1,000-year-old temple, and a festival that takes over the entire town.",
     longDescription:
@@ -145,7 +145,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     maxSlots: 35,
     bookedSlots: 0,
     difficulty: "Moderate",
-    coverImage: "/trips/card-mount-sumel-group.jpg",
+    coverImage: "/trips/card-mount-sumel-group.webp",
     shortDescription:
       "One of the highest points in Jaipur's Aravali range. 4:30 AM start. Panoramic sunrise views across the Shekhawati plains.",
     longDescription:
@@ -181,7 +181,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     maxSlots: 45,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-saan-valley.jpg",
+    coverImage: "/trips/card-saan-valley.webp",
     shortDescription:
       "Mid-terms end September 25. By evening of September 26, you're on a bus to the mountains. 3 nights, 4 cities, zero stress.",
     longDescription:
@@ -219,7 +219,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-trail.jpg",
+    coverImage: "/trips/card-raghunath-trail.webp",
     shortDescription:
       "Ranthambore reopens after monsoon on October 1. We go in on Oct 17 — when the jungle is freshest. Morning safari, fort ruins, 1 night stay.",
     longDescription:
@@ -257,7 +257,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     maxSlots: 40,
     bookedSlots: 0,
     difficulty: "Moderate",
-    coverImage: "/trips/gallery-banki-ridge-line.jpg",
+    coverImage: "/trips/gallery-banki-ridge-line.webp",
     shortDescription:
       "Halloween morning in the Aravali jungle. Ancient rocky ravines, dense forest, and a summit that makes every early alarm worth it.",
     longDescription:
@@ -294,7 +294,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     maxSlots: 40,
     bookedSlots: 0,
     difficulty: "Moderate",
-    coverImage: "/trips/card-raghunath-trail.jpg",
+    coverImage: "/trips/card-raghunath-trail.webp",
     shortDescription:
       "End-terms over. First breath of December air. Raghunath Fort at sunrise — and then that same evening, we leave for Jaisalmer.",
     longDescription:
@@ -331,7 +331,7 @@ const MYSTRIP_TRIPS: Trip[] = [
     maxSlots: 50,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-jaisalmer-golden-hour.jpg",
+    coverImage: "/trips/card-jaisalmer-golden-hour.webp",
     shortDescription:
       "4 days, 3 nights. The Golden City at the end of the semester. Dunes, forts, desert camps, and a sky full of stars you've never seen that clearly before.",
     longDescription:
@@ -376,7 +376,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 30,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-udaipur-couple.jpg",
+    coverImage: "/trips/card-udaipur-couple.webp",
     shortDescription:
       "For parents dropping their children at Sundarone Hostels. A day out together — Jaipur exploration or Khatu Shyamji darshan — so parents can meet, connect, and travel as a community.",
     longDescription:
@@ -426,7 +426,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
+    coverImage: "/trips/card-raghunath-group.webp",
     shortDescription:
       "A full day through Jaipur's forts — from a lakeside sunrise to a hilltop city skyline at night. Limited to 20 seats.",
     longDescription:
@@ -467,7 +467,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
+    coverImage: "/trips/card-raghunath-group.webp",
     shortDescription:
       "A full day through Jaipur's forts — from a lakeside sunrise to a hilltop city skyline at night. Limited to 20 seats.",
     longDescription:
@@ -507,7 +507,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
+    coverImage: "/trips/card-raghunath-group.webp",
     shortDescription:
       "A full day through Jaipur's forts — from a lakeside sunrise to a hilltop city skyline at night. Limited to 20 seats.",
     longDescription:
@@ -547,7 +547,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
+    coverImage: "/trips/card-raghunath-group.webp",
     shortDescription:
       "The hidden temples and iconic landmarks most tourists never put in the same day. Limited to 20 seats.",
     longDescription:
@@ -588,7 +588,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
+    coverImage: "/trips/card-raghunath-group.webp",
     shortDescription:
       "The hidden temples and iconic landmarks most tourists never put in the same day. Limited to 20 seats.",
     longDescription:
@@ -628,7 +628,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
+    coverImage: "/trips/card-raghunath-group.webp",
     shortDescription:
       "The hidden temples and iconic landmarks most tourists never put in the same day. Limited to 20 seats.",
     longDescription:
@@ -668,7 +668,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-group.jpg",
+    coverImage: "/trips/card-raghunath-group.webp",
     shortDescription:
       "The hidden temples and iconic landmarks most tourists never put in the same day. Limited to 20 seats.",
     longDescription:
@@ -708,7 +708,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 35,
     bookedSlots: 0,
     difficulty: "Moderate",
-    coverImage: "/trips/card-kedarkantha-sign.jpg",
+    coverImage: "/trips/card-kedarkantha-sign.webp",
     shortDescription:
       "Sundarone's first trek of the season. An 18th-century fort in the Aravali hills, approached through a forest trail at dawn. The kind of morning that resets everything.",
     longDescription:
@@ -746,7 +746,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 40,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-saan-valley-2.jpg",
+    coverImage: "/trips/card-saan-valley-2.webp",
     shortDescription:
       "Rajasthan's only hill station. 3 days, 2 nights on the Raksha Bandhan long weekend. Lakes, Dilwara Jain Temples, and the coolest air in the state.",
     longDescription:
@@ -785,7 +785,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 35,
     bookedSlots: 0,
     difficulty: "Moderate",
-    coverImage: "/trips/gallery-kedarkantha-boots.jpg",
+    coverImage: "/trips/gallery-kedarkantha-boots.webp",
     shortDescription:
       "Sundarone's second trek — twin rocky peaks in the Aravali. Early morning Sep 26, while MysTrip departs for Rishikesh the same day.",
     longDescription:
@@ -822,7 +822,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 45,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-udaipur-moments.jpg",
+    coverImage: "/trips/card-udaipur-moments.webp",
     shortDescription:
       "3 days, 2 nights in the City of Lakes — right after mid-terms end. Lake Pichola, City Palace, Fateh Sagar, and the most beautiful sunsets in Rajasthan.",
     longDescription:
@@ -861,7 +861,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 20,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-raghunath-trail.jpg",
+    coverImage: "/trips/card-raghunath-trail.webp",
     shortDescription:
       "Educational safari in the world's best tiger reserve — exclusively for Sundarone residents. Morning safari, naturalist guide, 1 night jungle stay.",
     longDescription:
@@ -899,7 +899,7 @@ const SUNDARONE_TRIPS: Trip[] = [
     maxSlots: 50,
     bookedSlots: 0,
     difficulty: "Easy",
-    coverImage: "/trips/card-jaisalmer-golden-hour.jpg",
+    coverImage: "/trips/card-jaisalmer-golden-hour.webp",
     shortDescription:
       "5 days, 4 nights in the Thar Desert. Sundarone's flagship end-of-semester trip. The Golden City at its most beautiful — cold December nights, desert camps, stars you've never seen so clearly.",
     longDescription:
